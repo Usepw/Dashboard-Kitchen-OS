@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CWFN — Tim Masak & Tim Persiapan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" defer></script>
+<style>
+  :root{
+    --navy:#1E293B; --navy-light:#334155; --gold:#D4AF37; --cream:#F8F9FA;
+    --card:#FFFFFF; --line:#EAECEF; --text:#2D3748; --muted:#718096; --gray:#E2E8F0;
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{ background:var(--cream); color:var(--text); font-family:'Source Sans 3', system-ui, sans-serif; padding-bottom:40px; -webkit-font-smoothing: antialiased; }
+  
+  header{ background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color:#fff; padding:24px 20px 0 20px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; box-shadow: 0 10px 20px rgba(30, 41, 59, 0.15); position: relative; z-index: 10; }
+  .brand-row{display:flex; align-items:center; gap:8px;}
+  .eyebrow{color:var(--gold); font-size:0.75rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase;}
+  h1{font-family:'Manrope', sans-serif; font-weight:800; font-size:1.4rem; margin:6px 0 4px 0; letter-spacing:-0.02em;}
+  .sub{color:#A0AEC0; font-size:0.85rem; margin:0 0 20px 0;}
+  
+  .header-actions{ margin-left:auto; display: flex; gap: 8px; }
+  .icon-btn{ background:rgba(255,255,255,0.1); border:none; color:#fff; font-size:1.1rem; padding:8px 12px; border-radius:12px; cursor:pointer; transition: all 0.2s ease; backdrop-filter: blur(4px); display:flex; align-items:center; justify-content:center;}
+  .icon-btn:active { background:rgba(255,255,255,0.2); transform: scale(0.95); }
+
+  .app-switch{ display:flex; gap:8px; margin-bottom: 16px; }
+  .app-switch button{ flex:1; background:rgba(255,255,255,0.05); border:none; color:#A0AEC0; font-family:'Manrope',sans-serif; font-weight:700; font-size:0.9rem; padding:12px 8px; cursor:pointer; border-radius:12px; transition: all 0.3s ease; }
+  .app-switch button.active{ background:#fff; color:var(--navy); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+  .day-tabs{display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; padding-bottom:20px;}
+  .day-tabs::-webkit-scrollbar{display:none;}
+  .day-tab{ flex:1 0 auto; background:transparent; border:1px solid rgba(255,255,255,0.2); color:#A0AEC0; padding:10px 16px; font-size:0.85rem; font-weight:600; font-family:inherit; cursor:pointer; text-align:center; border-radius:20px; transition: all 0.3s ease; }
+  .day-tab.active{ background:var(--gold); color:var(--navy); border-color:var(--gold); }
+  .day-tab .today-dot{ display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--navy); margin-left:6px; vertical-align: middle; }
+
+  main{max-width:520px; margin:0 auto; padding:20px 16px 0 16px;}
+  .empty{text-align:center; padding:60px 20px; color:var(--muted);}
+  .empty .big{font-family:'Manrope',sans-serif; font-weight:800; font-size:1.1rem; color:var(--navy); margin-bottom:8px;}
+  .loading{text-align:center; padding:60px 20px; color:var(--muted); font-size:0.9rem; font-weight: 600;}
+  .menu-strip{font-size:0.85rem; color:var(--muted); margin-bottom:16px; padding:0 4px; font-weight:600;}
+
+  .grid{display:flex; flex-direction:column; gap:16px;}
+  .std-card{ background:var(--card); border-radius:20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.05); overflow:hidden; cursor:pointer; transition:transform 0.2s ease, box-shadow 0.2s ease; border: 1px solid rgba(0,0,0,0.02); }
+  .std-card:active{transform:scale(0.98); box-shadow: 0 2px 8px rgba(0,0,0,0.05);}
+  .std-card-head{background:linear-gradient(to right, #1E293B, #2D3748); padding:16px 20px; position:relative;}
+  .std-card-head .komponen{color:var(--gold); font-size:0.7rem; letter-spacing:1.5px; text-transform:uppercase; font-weight:800;}
+  .std-card-head .menu-name{color:#fff; font-size:1.15rem; font-weight:800; font-family:'Manrope',sans-serif; margin-top:4px;}
+  .std-card-body{padding:20px;}
+  
+  .section{margin-bottom:16px; padding-bottom:16px; border-bottom:1px dashed var(--line);}
+  .section:last-child{border-bottom:none; margin-bottom:0; padding-bottom:0;}
+  .section-title{font-size:0.75rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--navy-light); margin-bottom:10px; display:flex; align-items:center; gap:8px;}
+  .prep-card-title{font-family:'Manrope', sans-serif; font-size:0.9rem; font-weight:700; color:var(--navy); margin-bottom:8px;}
+  
+  ul.items{list-style:none; margin:0; padding:0;}
+  .item{display:flex; align-items:flex-start; gap:12px; padding:8px 0;}
+  .idot{width:8px;height:8px; border-radius:50%; background:var(--gold); flex:0 0 auto; margin-top:7px; box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);}
+  .item span.label{font-size:0.95rem; line-height:1.5; color:var(--text);}
+
+  .scale-row{display:flex; align-items:center; justify-content:space-between; font-size:0.9rem; margin-bottom:8px;}
+  .scale-label{color:var(--muted); font-weight:600; min-width:100px;}
+  .dots{display:flex; gap:4px;}
+  .dot{width:12px; height:12px; border-radius:50%; background:var(--gray); transition: all 0.3s;}
+  .dot.filled{background:var(--gold); box-shadow: 0 0 5px rgba(212,175,55,0.4);}
+  .desc-text{font-size:0.95rem; line-height:1.5; margin-bottom:6px; color:var(--text);}
+  .redflag{display:inline-block; margin-top:6px; font-size:0.8rem; font-weight:700; padding:4px 10px; border-radius:8px;}
+  .redflag.ok{background:#E6FFFA; color:#234E52;} .redflag.warn{background:#FFF5F5; color:#E53E3E;}
+
+  .std-links{display:flex; gap:10px; padding:16px 20px; background:#F8F9FA; border-top:1px solid var(--line);}
+  .link-btn{flex:1; text-align:center; padding:12px 10px; border-radius:12px; font-size:0.9rem; font-weight:700; text-decoration:none; transition: all 0.2s; display:flex; justify-content:center; align-items:center; gap:6px;}
+  .link-btn.primary{background:var(--navy); color:#fff; box-shadow: 0 4px 10px rgba(30,41,59,0.2);}
+  .link-btn.primary:active{transform:translateY(2px); box-shadow:none;}
+  .link-btn:not(.primary){background:#fff; border:1px solid var(--gray); color:var(--navy);}
+  .link-btn:not(.primary):active{background:#F1F5F9;}
+  .link-btn.disabled{opacity:0.4; pointer-events:none; background:#E2E8F0; border:none; color:#A0AEC0; box-shadow:none;}
+  .unavailable{text-align:center; padding:30px 15px; color:var(--muted); font-size:0.9rem; font-weight:600; background:#F8F9FA; border-radius:12px;}
+
+  /* MODAL & TABS */
+  .modal-overlay {display:none; position:fixed; inset:0; background:rgba(30,41,59,0.7); z-index:100; padding:20px; overflow-y:auto; backdrop-filter: blur(4px);}
+  .modal-overlay.active {display:flex; justify-content:center; align-items:center;}
+  .modal-box {background:var(--card); max-width:450px; width:100%; border-radius:20px; padding:24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); position:relative; max-height:90vh; overflow-y:auto;}
+  .modal-close {position:absolute; top:16px; right:16px; background:#F1F5F9; border:none; width:32px; height:32px; border-radius:50%; font-size:18px; cursor:pointer; color:var(--muted);}
+  .modal-title {font-family:'Manrope', sans-serif; font-size:1.2rem; font-weight:800; margin:0 0 16px 0; color:var(--navy);}
+  
+  .admin-tabs {display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap;}
+  .admin-tab {flex:1; padding:8px; border:none; background:#F1F5F9; border-radius:8px; font-size:0.8rem; font-weight:700; color:var(--muted); cursor:pointer; transition:0.2s; text-align:center;}
+  .admin-tab.active {background:var(--navy); color:#fff;}
+  
+  .form-group {margin-bottom:12px;}
+  .form-group label {display:block; font-size:0.85rem; font-weight:700; margin-bottom:4px; color:var(--navy-light);}
+  .form-control {width:100%; padding:10px; border:1px solid var(--gray); border-radius:8px; font-family:inherit; font-size:0.9rem; outline:none;}
+  .form-control:focus {border-color:var(--navy);}
+  .pw-wrapper {position:relative;}
+  .pw-toggle {position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:1.1rem; user-select:none;}
+  
+  .btn-submit {width:100%; padding:14px; background:var(--navy); color:#fff; border:none; border-radius:12px; font-family:'Manrope', sans-serif; font-weight:700; font-size:1rem; cursor:pointer; margin-top:12px;}
+  .btn-submit:active {background:var(--navy-light);}
+  .btn-submit:disabled {background:var(--muted); cursor:not-allowed;}
+
+  footer{max-width:520px; margin:30px auto 0 auto; padding:0 20px; font-size:0.75rem; color:var(--muted); text-align:center; line-height: 1.5;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand-row">
+    <div>
+      <div class="eyebrow" id="eyebrowLabel">CWFN · Sudimara Barat 2</div>
+      <h1 id="pageTitle">Tim Persiapan</h1>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="openAdminModal()" title="Admin Area">🔒</button>
+      <button class="icon-btn" onclick="loadAll()" title="Refresh">⟳</button>
+    </div>
+  </div>
+  <div class="sub" id="todayLabel">Memuat tanggal...</div>
+  
+  <div class="app-switch">
+    <button id="btnPersiapan" class="active" onclick="switchApp('persiapan')">Tim Persiapan</button>
+    <button id="btnMasak" onclick="switchApp('masak')">Tim Masak</button>
+  </div>
+  <div class="day-tabs" id="dayTabs"></div>
+</header>
+
+<main>
+  <div class="menu-strip" id="menuSummary" style="display:none;"></div>
+  <div id="content" class="loading">Memuat data...</div>
+</main>
+
+<footer id="footerNote">Data otomatis: Jadwal Menu Mingguan digeser H-1, Master Resep Persiapan.<br>Link Video/SOP bersumber dari Master_Resep (anti-geser).</footer>
+
+<div id="overlay" class="modal-overlay"><button class="close-btn" onclick="closeOverlay()">&times;</button><div id="overlay-content"></div></div>
+
+<!-- MODAL LOGIN ADMIN -->
+<div id="loginModal" class="modal-overlay">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+    <h3 class="modal-title">Akses Admin</h3>
+    <div class="form-group">
+      <label>Password</label>
+      <div class="pw-wrapper">
+        <input type="password" id="adminPassword" class="form-control" placeholder="Masukkan password...">
+        <span class="pw-toggle" onclick="togglePassword()">👁️</span>
+      </div>
+    </div>
+    <button class="btn-submit" onclick="verifyAdmin()">Masuk</button>
+  </div>
+</div>
+
+<!-- MODAL INPUT DATA (5 TABS) -->
+<div id="inputModal" class="modal-overlay">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeInputModal()">&times;</button>
+    <h3 class="modal-title">Panel Admin</h3>
+    
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchAdminTab('jadwal')">Jadwal</button>
+      <button class="admin-tab" onclick="switchAdminTab('link')">Video/SOP</button>
+      <button class="admin-tab" onclick="switchAdminTab('resep')">Resep</button>
+      <button class="admin-tab" onclick="switchAdminTab('standar')">Standar</button>
+      <button class="admin-tab" onclick="switchAdminTab('bulk')" style="background:#FFF3CD; color:#856404;">Bulk TSV</button>
+    </div>
+
+    <!-- FORM 1: JADWAL -->
+    <div id="form-jadwal" class="admin-form">
+      <div class="form-group">
+        <label>Pilih Hari</label>
+        <select id="jHari" class="form-control">
+          <option value="Senin">Senin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option>
+          <option value="Kamis">Kamis</option><option value="Jumat">Jumat</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Komponen</label>
+        <select id="jKomponen" class="form-control">
+          <option value="Karbohidrat">Karbohidrat</option><option value="Lauk Hewani">Lauk Hewani</option>
+          <option value="Lauk Nabati">Lauk Nabati</option><option value="Sayur">Sayur</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nama Menu</label>
+        <input type="text" id="jMenu" class="form-control" placeholder="Contoh: Nasi Putih" autocomplete="off" oninput="checkMenuExist('jMenu')">
+        <datalist id="menuList"></datalist>
+      </div>
+      <button class="btn-submit" onclick="simpanJadwal()">Simpan Jadwal</button>
+    </div>
+
+    <!-- FORM 2: VIDEO / SOP -->
+    <div id="form-link" class="admin-form" style="display:none;">
+      <div class="form-group">
+        <label>Nama Menu (Pilih dari daftar)</label>
+        <input type="text" id="lMenu" class="form-control" placeholder="Cari menu..." list="menuList" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Link Video (YouTube/IG)</label>
+        <input type="text" id="lVideo" class="form-control" placeholder="https://youtube.com/...">
+      </div>
+      <div class="form-group">
+        <label>Link SOP (G-Drive/Docs)</label>
+        <input type="text" id="lSop" class="form-control" placeholder="https://docs.google.com/...">
+      </div>
+      <button class="btn-submit" onclick="simpanData('updateLink', {menu: document.getElementById('lMenu').value, video: document.getElementById('lVideo').value, sop: document.getElementById('lSop').value})">Simpan Video/SOP</button>
+    </div>
+
+    <!-- FORM 3: RESEP PERSIAPAN -->
+    <div id="form-resep" class="admin-form" style="display:none;">
+      <div class="form-group">
+        <label>Nama Menu (Pilih dari daftar)</label>
+        <input type="text" id="rMenu" class="form-control" placeholder="Cari menu..." list="menuList" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Nama Kartu (Card)</label>
+        <input type="text" id="rCard" class="form-control" placeholder="Contoh: Tahu Putih">
+      </div>
+      <div class="form-group">
+        <label>Langkah Persiapan (Maksimal 5)</label>
+        <input type="text" id="rItem1" class="form-control" placeholder="Langkah 1" style="margin-bottom: 6px;">
+        <input type="text" id="rItem2" class="form-control" placeholder="Langkah 2 (opsional)" style="margin-bottom: 6px;">
+        <input type="text" id="rItem3" class="form-control" placeholder="Langkah 3 (opsional)" style="margin-bottom: 6px;">
+        <input type="text" id="rItem4" class="form-control" placeholder="Langkah 4 (opsional)" style="margin-bottom: 6px;">
+        <input type="text" id="rItem5" class="form-control" placeholder="Langkah 5 (opsional)">
+      </div>
+      <button class="btn-submit" onclick="simpanResep()">Simpan Resep</button>
+    </div>
+
+    <!-- FORM 4: STANDAR RASA -->
+    <div id="form-standar" class="admin-form" style="display:none;">
+      <div class="form-group">
+        <label>Nama Menu (Pilih dari daftar)</label>
+        <input type="text" id="sMenu" class="form-control" placeholder="Cari menu..." list="menuList" autocomplete="off">
+      </div>
+      <div style="display:flex; gap:10px;">
+        <div class="form-group" style="flex:1;"><label>Asin</label><input type="number" id="sAsin" class="form-control" min="0" max="5"></div>
+        <div class="form-group" style="flex:1;"><label>Manis</label><input type="number" id="sManis" class="form-control" min="0" max="5"></div>
+        <div class="form-group" style="flex:1;"><label>Pedas</label><input type="number" id="sPedas" class="form-control" min="0" max="5"></div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <div class="form-group" style="flex:1;"><label>Gurih</label><input type="number" id="sGurih" class="form-control" min="0" max="5"></div>
+        <div class="form-group" style="flex:1;"><label>Asam</label><input type="number" id="sAsam" class="form-control" min="0" max="5"></div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <div class="form-group" style="flex:1;"><label>Kekenyalan</label><input type="number" id="sKekenyalan" class="form-control" min="0" max="5"></div>
+        <div class="form-group" style="flex:1;"><label>Kebasahan</label><input type="number" id="sKebasahan" class="form-control" min="0" max="5"></div>
+        <div class="form-group" style="flex:1;"><label>Kerenyahan</label><input type="number" id="sKerenyahan" class="form-control" min="0" max="5"></div>
+      </div>
+      <div class="form-group"><label>Warna Dominan</label><input type="text" id="sWarna" class="form-control" placeholder="Cth: Kuning keemasan merata"></div>
+      <div class="form-group"><label>Kematangan Warna</label><input type="number" id="sKematangan" class="form-control" min="0" max="5"></div>
+      <div class="form-group"><label>Link Foto Referensi</label><input type="text" id="sFoto" class="form-control"></div>
+      <div class="form-group"><label>Aroma Dominan</label><input type="text" id="sAroma" class="form-control" placeholder="Cth: Harum tempe goreng"></div>
+      <div class="form-group"><label>Intensitas Aroma</label><input type="number" id="sIntensitas" class="form-control" min="0" max="5"></div>
+      <div class="form-group"><label>Red Flag Aroma</label><input type="text" id="sRedFlag" class="form-control" placeholder="Cth: Waspada bau tengik minyak"></div>
+      <button class="btn-submit" onclick="simpanStandar()">Simpan Standar</button>
+    </div>
+
+    <!-- FORM 5: BULK TSV -->
+    <div id="form-bulk" class="admin-form" style="display:none;">
+      <div class="form-group">
+        <label>Pilih Data yang akan di-Paste:</label>
+        <select id="bulkType" class="form-control">
+          <option value="addStandar">Master Kartu Standar (Rasa, Aroma, dll)</option>
+          <option value="addResep">Resep Persiapan (Menu, Card, Item)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Paste teks TSV (Tab-separated) di sini:</label>
+        <textarea id="bulkText" class="form-control" rows="8" placeholder="Nama Menu&#9;Asin (1-5)&#9;Manis (1-5)..."></textarea>
+        <div style="font-size:0.75rem; color:var(--muted); margin-top:4px;">Pastikan baris pertama adalah nama kolom yang persis sama dengan header di Google Sheets.</div>
+      </div>
+      <button class="btn-submit" onclick="prosesBulkTSV()" style="background:#28A745;">Proses & Simpan</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// === KONFIGURASI ===
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby1k2Iwutn0QtWSPrRAsbuB3NB12aaXoO6ka2ZfUFcvuwAPYzhGfn9ueem5KWHXydzbkA/exec"; 
+const ADMIN_PASSWORD = "admincwfn";
+
+// Sistem Multi-Dapur (SaaS)
+const DEFAULT_SHEET_ID = "1x5LlGdHIPmkcbwUMeP_JGymBWCn39znsAxYoL9SmjNM";
+const REGISTRY_SHEET_ID = "12NhR0KH1Q_YfeJJJNotC_o2b60Irn-Jtpo5F2DbRdyA";
+let SHEET_ID = DEFAULT_SHEET_ID;
+
+const TAB_RESEP = "Master_Resep", TAB_MASTER = "MasterKartuStandard", TAB_JADWAL = "Jadwal_Menu_Mingguan";   
+const DAYS_MASAK = ["Senin","Selasa","Rabu","Kamis","Jumat"];
+const DAYS_PERSIAPAN = ["Minggu","Senin","Selasa","Rabu","Kamis"];
+const PERSIAPAN_TO_MASAK = {"Minggu":"Senin","Senin":"Selasa","Selasa":"Rabu","Rabu":"Kamis","Kamis":"Jumat"};
+
+let CURRENT_APP = "persiapan", CACHE_JADWAL = [], CACHE_MASTER = [], CACHE_RESEP = [];
+let SELECTED_DAY_MASAK = null, SELECTED_DAY_PERSIAPAN = null, todayDayName = "";
+
+// === MULTI-DAPUR LOGIC ===
+function namedCsvUrl(tabName, sheetId = SHEET_ID){ return "https://docs.google.com/spreadsheets/d/" + sheetId + "/gviz/tq?tqx=out:csv&sheet=" + encodeURIComponent(tabName) + "&_=" + Date.now(); }
+
+async function applyDapurConfig() {
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('dapur');
+    if (!slug) return;
+
+    try {
+        const res = await fetch("https://docs.google.com/spreadsheets/d/" + REGISTRY_SHEET_ID + "/gviz/tq?tqx=out:csv&gid=0");
+        const text = await res.text();
+        const rows = text.split(/\r?\n/).filter(l => l.trim() !== '').map(line => {
+            let s = line.trim(); if (s.startsWith('"')) s = s.slice(1); if (s.endsWith('"')) s = s.slice(0, -1);
+            return s.split('","');
+        });
+        const headers = rows[0] || [];
+        const regRows = rows.slice(1).map(cols => { const obj = {}; headers.forEach((h, i) => obj[h] = cols[i] || ''); return obj; });
+        const row = regRows.find(r => (r['Slug'] || '').trim().toLowerCase() === slug.trim().toLowerCase());
+        
+        if (row) {
+            if (row['Sistem Sheet ID']) SHEET_ID = row['Sistem Sheet ID'].trim();
+            if (row['Nama Dapur']) document.getElementById('eyebrowLabel').textContent = 'CWFN · ' + row['Nama Dapur'].trim();
+            if (row['Warna Identitas']) {
+                const hex = row['Warna Identitas'].trim();
+                if (hex.startsWith('#')) document.documentElement.style.setProperty('--gold', hex);
+            }
+        }
+    } catch(e) { console.warn("Gagal load Registry, pakai default."); }
+}
+
+// === FETCH & PARSER ===
+function fetchCsv(url){
+  const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Koneksi lambat")), 12000));
+  const fetchP = new Promise((resolve, reject) => { Papa.parse(url, { download:true, header:false, skipEmptyLines:true, complete:(res)=>resolve(res.data), error:(err)=>reject(err) }); });
+  return Promise.race([fetchP, timeout]);
+}
+function isFilled(val){ return val && val.trim() !== "" && !val.trim().startsWith("("); }
+function validLink(link){ return link && link.trim().toLowerCase().startsWith('http'); }
+
+function normalizeJadwal(rawData) {
+    const result = []; let currentHari = "";
+    const HARI_LIST = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+    const KOMPONEN_LIST = ["Karbohidrat", "Lauk Hewani", "Lauk Nabati", "Sayur", "Sayuran"];
+    rawData.forEach(rowArray => {
+        const vals = rowArray.map(v => (v || "").trim());
+        if (vals.find(v => HARI_LIST.includes(v))) currentHari = vals.find(v => HARI_LIST.includes(v));
+        const komponen = vals[1] || "", menu = vals[2] || "";
+        if (KOMPONEN_LIST.includes(komponen) && menu !== "") result.push({ "Hari": currentHari, "Komponen": komponen, "Nama Menu": menu });
+    });
+    return result;
+}
+function normalizeData(rawData) {
+    if(!rawData || rawData.length < 2) return [];
+    const headers = rawData[0].map(h => (h || "").trim()); const result = [];
+    for(let i = 1; i < rawData.length; i++) {
+        const row = {}; for(let j = 0; j < headers.length; j++) { if(headers[j] !== "") row[headers[j]] = (rawData[i][j] || "").trim(); }
+        result.push(row);
+    }
+    return result;
+}
+
+// === ADMIN & UI LOGIC ===
+function openAdminModal() { document.getElementById('adminPassword').value = ''; document.getElementById('loginModal').classList.add('active'); }
+function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
+function verifyAdmin() {
+    if(document.getElementById('adminPassword').value === ADMIN_PASSWORD) {
+        closeLoginModal(); 
+        document.getElementById('inputModal').classList.add('active');
+        updateMenuDatalist();
+    } else { alert("Password Salah!"); }
+}
+function closeInputModal() { document.getElementById('inputModal').classList.remove('active'); }
+function togglePassword() {
+    const inp = document.getElementById('adminPassword');
+    inp.type = inp.type === "password" ? "text" : "password";
+}
+function switchAdminTab(tabName) {
+    document.querySelectorAll('.admin-form').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
+    document.getElementById('form-' + tabName).style.display = 'block';
+    event.target.classList.add('active');
+}
+function updateMenuDatalist() {
+    const menuSet = new Set();
+    CACHE_JADWAL.forEach(r => menuSet.add(r["Nama Menu"]));
+    CACHE_RESEP.forEach(r => { if(r.Menu) menuSet.add(r.Menu); });
+    
+    const dl = document.getElementById('menuList');
+    dl.innerHTML = '';
+    Array.from(menuSet).sort().forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m; dl.appendChild(opt);
+    });
+}
+
+// === SIMPAN DATA ===
+function simpanJadwal() {
+    const menu = document.getElementById('jMenu').value.trim();
+    if (!menu) return alert("Nama menu wajib diisi!");
+    
+    // Cek apakah menu sudah ada di Master Resep / punya Video?
+    const adaResep = CACHE_RESEP.some(r => (r.Menu||'').toLowerCase() === menu.toLowerCase());
+    const vs = getVideoSopForMenu(menu);
+    const punyaLink = validLink(vs.video) || validLink(vs.sop);
+
+    if (!adaResep || !punyaLink) {
+        const lanjut = confirm(`⚠️ Menu "${menu}" belum memiliki Resep atau Video/SOP lengkap.\n\nIngin melengkapinya sekarang?`);
+        if (lanjut) {
+            closeInputModal();
+            setTimeout(() => {
+                openAdminModal(); // Buka login lagi
+                document.getElementById('adminPassword').value = ADMIN_PASSWORD;
+                verifyAdmin(); // Auto login
+                switchAdminTab('resep'); // Arahkan ke tab Resep
+                document.getElementById('rMenu').value = menu; // Auto isi nama menu
+            }, 500);
+            return;
+        }
+    }
+
+    simpanData('addJadwal', {hari: document.getElementById('jHari').value, komponen: document.getElementById('jKomponen').value, menu: menu});
+}
+function simpanResep() {
+    const menu = document.getElementById('rMenu').value.trim();
+    const card = document.getElementById('rCard').value.trim();
+    const items = [1,2,3,4,5].map(i => document.getElementById('rItem'+i).value).filter(v => v && v.trim() !== "");
+    if (!menu || !card || items.length === 0) return alert("Lengkapi Nama Menu, Kartu, dan minimal 1 Langkah!");
+    simpanData('addResep', { menu: menu, card: card, items: items });
+}
+function simpanStandar() {
+    const payload = {
+        'Nama Menu': document.getElementById('sMenu').value.trim(),
+        'Asin (1-5)': document.getElementById('sAsin').value || 0,
+        'Manis (1-5)': document.getElementById('sManis').value || 0,
+        'Pedas (1-5)': document.getElementById('sPedas').value || 0,
+        'Gurih/Umami (1-5)': document.getElementById('sGurih').value || 0,
+        'Asam (1-5)': document.getElementById('sAsam').value || 0,
+        'Kelembutan/Kekenyalan (1-5)': document.getElementById('sKekenyalan').value || 0,
+        'Kebasahan (1-5)': document.getElementById('sKebasahan').value || 0,
+        'Kerenyahan (1-5)': document.getElementById('sKerenyahan').value || 0,
+        'Warna Dominan': document.getElementById('sWarna').value,
+        'Kematangan Warna (1-5)': document.getElementById('sKematangan').value || 0,
+        'Link Foto Referensi': document.getElementById('sFoto').value,
+        'Aroma Dominan': document.getElementById('sAroma').value,
+        'Intensitas Aroma (1-5)': document.getElementById('sIntensitas').value || 0,
+        'Red Flag Aroma': document.getElementById('sRedFlag').value
+    };
+    if (!payload['Nama Menu']) return alert("Nama Menu wajib diisi!");
+    simpanData('addStandar', payload);
+}
+
+// === BULK TSV LOGIC ===
+function prosesBulkTSV() {
+    const rawText = document.getElementById('bulkText').value.trim();
+    const actionType = document.getElementById('bulkType').value;
+    if (!rawText) return alert("Teks TSV masih kosong!");
+    
+    const lines = rawText.split(/\r?\n/).filter(l => l.trim() !== "");
+    if (lines.length < 2) return alert("Minimal butuh 1 baris header dan 1 baris data.");
+
+    const headers = lines[0].split('\t').map(h => h.trim());
+    const dataRows = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split('\t');
+        const obj = {};
+        headers.forEach((h, idx) => { obj[h] = (cols[idx] || "").trim(); });
+        dataRows.push(obj);
+    }
+
+    if (actionType === 'addStandar') {
+        simpanDataBulk(actionType, { rows: dataRows });
+    } else {
+        // Jika resep, kita perlu ubah formatnya jadi {menu, card, items:[]} per grup
+        alert("Untuk Bulk Resep, pastikan header TSV-nya adalah: Menu, Card, Item");
+        // (Logika spesifik untuk resep bisa disesuaikan di sini jika perlu)
+        simpanDataBulk(actionType, { rows: dataRows });
+    }
+}
+
+// === KOMUNIKASI KE APPS SCRIPT ===
+async function simpanData(action, payload) {
+    if(APPS_SCRIPT_URL.includes("MASUKKAN_URL")) return alert("https://script.google.com/macros/s/AKfycby1k2Iwutn0QtWSPrRAsbuB3NB12aaXoO6ka2ZfUFcvuwAPYzhGfn9ueem5KWHXydzbkA/exec");
+    payload.action = action;
+    payload.sheetId = SHEET_ID; // Kirim Sheet ID (untuk multi-dapur)
+    
+    const btn = event.target; const orig = btn.innerText;
+    btn.disabled = true; btn.innerText = "Menyimpan...";
+    try {
+        const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+        const result = await response.json();
+        if(result.status === "success") {
+            alert("✅ Berhasil disimpan!");
+            closeInputModal(); loadAll(); 
+        } else { alert("❌ Gagal: " + result.message); }
+    } catch (error) { alert("❌ Error: " + error.message); } 
+    finally { btn.disabled = false; btn.innerText = orig; }
+}
+
+async function simpanDataBulk(action, payload) {
+    if(APPS_SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycby1k2Iwutn0QtWSPrRAsbuB3NB12aaXoO6ka2ZfUFcvuwAPYzhGfn9ueem5KWHXydzbkA/exec")) return alert("URL Apps Script belum diisi!");
+    payload.action = "bulkInsert";
+    payload.sheetName = action === 'addStandar' ? TAB_MASTER : TAB_RESEP;
+    payload.sheetId = SHEET_ID;
+    
+    const btn = event.target; const orig = btn.innerText;
+    btn.disabled = true; btn.innerText = "Memproses...";
+    try {
+        const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+        const result = await response.json();
+        if(result.status === "success") {
+            alert("✅ " + result.message);
+            closeInputModal(); loadAll();
+        } else { alert("❌ Gagal: " + result.message); }
+    } catch (error) { alert("❌ Error: " + error.message); } 
+    finally { btn.disabled = false; btn.innerText = orig; }
+}
+
+// === CORE APP ===
+function switchApp(app){
+  CURRENT_APP = app;
+  document.getElementById('btnMasak').classList.toggle('active', app==='masak');
+  document.getElementById('btnPersiapan').classList.toggle('active', app==='persiapan');
+  document.getElementById('pageTitle').textContent = app==='masak' ? 'Tim Masak' : 'Tim Persiapan';
+  render();
+}
+function setTodayLabel(){
+  const days = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+  const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+  const now = new Date(); todayDayName = days[now.getDay()];
+  document.getElementById('todayLabel').textContent = todayDayName + ", " + now.getDate() + " " + months[now.getMonth()] + " " + now.getFullYear();
+  SELECTED_DAY_MASAK = DAYS_MASAK.includes(todayDayName) ? todayDayName : "Senin";
+  SELECTED_DAY_PERSIAPAN = DAYS_PERSIAPAN.includes(todayDayName) ? todayDayName : "Minggu";
+}
+async function loadAll(){
+  document.getElementById('content').className = 'loading'; document.getElementById('content').innerHTML = 'Memuat data...';
+  try{
+    const [jadwalRaw, masterRaw, resepRaw] = await Promise.all([fetchCsv(namedCsvUrl(TAB_JADWAL)), fetchCsv(namedCsvUrl(TAB_MASTER)), fetchCsv(namedCsvUrl(TAB_RESEP))]);
+    CACHE_JADWAL = normalizeJadwal(jadwalRaw); 
+    CACHE_MASTER = normalizeData(masterRaw); 
+    CACHE_RESEP = normalizeData(resepRaw); 
+    render();
+  }catch(err){ document.getElementById('content').className = 'empty'; document.getElementById('content').innerHTML = '<div class="big">Gagal memuat</div>' + (err.message || err); }
+}
+function findMaster(namaMenu){ return !CACHE_MASTER ? null : CACHE_MASTER.find(r => (r["Nama Menu"]||"").trim().toLowerCase() === namaMenu.trim().toLowerCase()); }
+function getVideoSopForMenu(menuName){
+  if(!CACHE_RESEP) return { video: '', sop: '' };
+  const row = CACHE_RESEP.find(r => (r['Daftar Menu Unik'] || '').trim().toLowerCase() === menuName.trim().toLowerCase());
+  return { video: row ? (row['Link Video']||'').trim() : '', sop: row ? (row['Link SOP']||'').trim() : '' };
+}
+function render(){ if(CACHE_JADWAL) { CURRENT_APP === 'masak' ? renderMasak() : renderPersiapan(); } }
+
+function dotsHtml(value, max){ max = max || 5; const v = parseInt(value) || 0; let html = '<div class="dots">'; for(let i=1;i<=max;i++) html += `<div class="dot ${i<=v?'filled':''}"></div>`; return html + '</div>'; }
+function scaleRow(label, value){ return `<div class="scale-row"><span class="scale-label">${label}</span>${dotsHtml(value)}<span style="width:16px;text-align:right;color:var(--muted);font-size:0.8rem;font-weight:700;">${value||0}</span></div>`; }
+function linkBtn(label, url, primary){ const has = validLink(url); const cls = `link-btn ${primary?'primary':''} ${has?'':'disabled'}`; return `<a class="${cls}" href="${has ? url : '#'}" target="_blank" rel="noopener">${label}</a>`; }
+function renderRedFlag(val){ if(!isFilled(val)) return ''; const v = val.trim().toLowerCase(); const isWarn = v.startsWith("ada") && !v.startsWith("tidak"); return `<span class="redflag ${isWarn?'warn':'ok'}">${isWarn?'&#128681; ':''}${val.trim()}</span>`; }
+function buildStdBody(m){
+  if(!m) return `<div class="unavailable">Kartu Standar belum tersedia</div>`;
+  return `<div class="section"><div class="section-title">&#127919; Rasa</div>${scaleRow("Asin", m["Asin (1-5)"])}${scaleRow("Manis", m["Manis (1-5)"])}${scaleRow("Pedas", m["Pedas (1-5)"])}${scaleRow("Gurih/Umami", m["Gurih/Umami (1-5)"])}${scaleRow("Asam", m["Asam (1-5)"])}</div>
+    <div class="section"><div class="section-title">&#9995; Tekstur</div>${scaleRow("Kekenyalan", m["Kelembutan/Kekenyalan (1-5)"])}${scaleRow("Kebasahan", m["Kebasahan (1-5)"])}${scaleRow("Kerenyahan", m["Kerenyahan (1-5)"])}</div>
+    <div class="section"><div class="section-title">&#128065; Visual</div><div class="desc-text">${isFilled(m["Warna Dominan"]) ? m["Warna Dominan"] : '<span style="color:var(--muted);font-style:italic;">Belum diisi</span>'}</div>${scaleRow("Kematangan Warna", m["Kematangan Warna (1-5)"])}</div>
+    <div class="section"><div class="section-title">&#128067; Aroma</div><div class="desc-text">${isFilled(m["Aroma Dominan"]) ? m["Aroma Dominan"] : '<span style="color:var(--muted);font-style:italic;">Belum diisi</span>'}</div>${scaleRow("Intensitas", m["Intensitas Aroma (1-5)"])}${renderRedFlag(m["Red Flag Aroma"])}</div>`;
+}
+function buildCardShell(komponen, namaMenu, bodyHtml, vs){
+  const head = `<div class="std-card-head"><div class="komponen">${komponen}</div><div class="menu-name">${namaMenu}</div></div>`;
+  const links = (validLink(vs.video) || validLink(vs.sop)) ? `<div class="std-links">${linkBtn("&#9654; Video", vs.video, true)}${linkBtn("&#128196; SOP", vs.sop, false)}</div>` : '';
+  return head + `<div class="std-card-body">${bodyHtml}</div>` + links;
+}
+
+function renderMasak(){
+  const tabsEl = document.getElementById('dayTabs'); tabsEl.innerHTML = "";
+  DAYS_MASAK.forEach(d=>{ const btn = document.createElement('button'); btn.className = 'day-tab' + (d===SELECTED_DAY_MASAK ? ' active':''); btn.innerHTML = d + (d===todayDayName ? '<span class="today-dot"></span>' : ''); btn.onclick = ()=>{ SELECTED_DAY_MASAK = d; render(); }; tabsEl.appendChild(btn); });
+  const rows = CACHE_JADWAL.filter(r => (r["Hari"]||"").toLowerCase() === SELECTED_DAY_MASAK.toLowerCase() && isFilled(r["Nama Menu"]));
+  const contentEl = document.getElementById('content'); document.getElementById('menuSummary').style.display = 'none';
+  if(rows.length === 0){ contentEl.className = 'empty'; contentEl.innerHTML = '<div class="big">Belum ada jadwal</div>Jadwal menu untuk ' + SELECTED_DAY_MASAK + ' belum diisi.'; return; }
+  contentEl.className = 'grid'; contentEl.innerHTML = '';
+  rows.forEach(row=>{
+    const masterRow = findMaster(row["Nama Menu"]); const vs = getVideoSopForMenu(row["Nama Menu"]);
+    const el = document.createElement('div'); el.className = 'std-card';
+    el.innerHTML = buildCardShell(row["Komponen"], row["Nama Menu"], buildStdBody(masterRow), vs);
+    el.addEventListener('click', ()=> { document.getElementById('overlay-content').innerHTML = `<div class="modal-box" style="padding:0;max-width:520px;">${el.innerHTML}</div>`; document.getElementById('overlay').classList.add('active'); });
+    contentEl.appendChild(el);
+  });
+}
+
+function renderPersiapan(){
+  const tabsEl = document.getElementById('dayTabs'); tabsEl.innerHTML = "";
+  DAYS_PERSIAPAN.forEach(d=>{ const btn = document.createElement('button'); btn.className = 'day-tab' + (d===SELECTED_DAY_PERSIAPAN ? ' active':''); btn.innerHTML = d + (d===todayDayName ? '<span class="today-dot"></span>' : ''); btn.onclick = ()=>{ SELECTED_DAY_PERSIAPAN = d; render(); }; tabsEl.appendChild(btn); });
+  const contentEl = document.getElementById('content'), menuStrip = document.getElementById('menuSummary');
+  const masakDay = PERSIAPAN_TO_MASAK[SELECTED_DAY_PERSIAPAN];
+  const jadwalHariIni = CACHE_JADWAL.filter(r => (r["Hari"]||"").toLowerCase() === masakDay.toLowerCase() && isFilled(r["Nama Menu"]));
+  if(jadwalHariIni.length === 0){ menuStrip.style.display = 'none'; contentEl.className = 'empty'; contentEl.innerHTML = '<div class="big">Belum ada menu</div>Jadwal Tim Masak untuk ' + masakDay + ' belum diisi.'; return; }
+  contentEl.className = 'grid'; contentEl.innerHTML = ''; const menuList = [];
+  jadwalHariIni.forEach(j=>{
+    const menuName = j["Nama Menu"].trim(); const resepMenu = CACHE_RESEP.filter(r => r.Menu && r.Menu.trim().toLowerCase() === menuName.toLowerCase());
+    const vs = getVideoSopForMenu(menuName); let bodyHtml;
+    if(resepMenu.length === 0){ bodyHtml = `<div class="unavailable">Resep belum ada di Master Resep Persiapan</div>`; }
+    else {
+      menuList.push(menuName); const byCard = {};
+      resepMenu.forEach(r=>{ if(!byCard[r.Card]) byCard[r.Card] = []; byCard[r.Card].push(r.Item); });
+      bodyHtml = Object.keys(byCard).map(cardName => `<div class="section"><div class="prep-card-title">${cardName}</div><ul class="items">${byCard[cardName].map(item => `<li class="item"><span class="idot"></span><span class="label">${item}</span></li>`).join('')}</ul></div>`).join('');
+    }
+    const cardHtml = buildCardShell(j["Komponen"], menuName, bodyHtml, vs);
+    const el = document.createElement('div'); el.className = 'std-card'; el.innerHTML = cardHtml;
+    el.addEventListener('click', ()=> { document.getElementById('overlay-content').innerHTML = `<div class="modal-box" style="padding:0;max-width:520px;">${cardHtml}</div>`; document.getElementById('overlay').classList.add('active'); });
+    contentEl.appendChild(el);
+  });
+  if(menuList.length > 0){ menuStrip.style.display = 'block'; menuStrip.textContent = 'Menyiapkan untuk ' + masakDay + ': ' + menuList.join(' · '); } else { menuStrip.style.display = 'none'; }
+}
+function closeOverlay(){ document.getElementById('overlay').classList.remove('active'); }
+
+document.addEventListener('DOMContentLoaded', async () => {
+  document.getElementById('overlay').addEventListener('click', (e)=>{ if(e.target.id==='overlay') closeOverlay(); });
+  setTodayLabel(); 
+  await applyDapurConfig(); // Cek URL ?dapur=
+  loadAll();
+});
+</script>
+</body>
+</html>
