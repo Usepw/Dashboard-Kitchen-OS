@@ -36,6 +36,7 @@
         .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .btn-add { background: var(--accent); color: white; width: 100%; margin-bottom: 15px; }
         .btn-delete { background: var(--danger); color: white; padding: 6px 10px; font-size: 12px; }
+        .btn-edit { background: #f59e0b; color: white; padding: 6px 10px; font-size: 12px; }
 
         .list-item { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .list-item h4 { margin: 0 0 5px 0; font-size: 16px; }
@@ -72,6 +73,8 @@
         .menu-item.selected { border-color: var(--accent); background: #ecfdf5; }
         .menu-item-info h4 { margin: 0 0 4px 0; font-size: 15px; }
         .menu-item-info p { margin: 0; font-size: 12px; color: #64748b; }
+        
+        .resep-header { display: flex; justify-content: space-between; align-items: flex-start; }
     </style>
 </head>
 <body>
@@ -88,25 +91,21 @@
         <div class="tabs" id="tab-container"></div>
     </div>
 
-    <!-- JADWAL -->
     <div id="page-jadwal" class="content active">
         <button class="btn btn-add" onclick="bukaModalJadwal()">➕ Tambah Jadwal Menu</button>
         <div id="daftar-jadwal"><div class="loading">Memuat jadwal...</div></div>
     </div>
 
-    <!-- BUKU RESEP -->
     <div id="page-resep" class="content">
         <button class="btn btn-add" onclick="bukaModalResep()">➕ Tambah Resep Baru</button>
         <div id="daftar-resep"><div class="loading">Memuat resep...</div></div>
     </div>
 
-    <!-- KARYAWAN -->
     <div id="page-karyawan" class="content">
         <button class="btn btn-add" onclick="tambahKaryawan()">➕ Tambah Karyawan</button>
         <div id="daftar-karyawan"><div class="loading">Memuat karyawan...</div></div>
     </div>
 
-    <!-- BOTTOM NAV -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="gantiHalaman('jadwal', this)"><span>📅</span> Jadwal</div>
         <div class="nav-item" onclick="gantiHalaman('resep', this)"><span>📖</span> Buku Resep</div>
@@ -131,10 +130,10 @@
         </div>
     </div>
 
-    <!-- MODAL TAMBAH RESEP -->
+    <!-- MODAL TAMBAH/EDIT RESEP -->
     <div class="modal-overlay" id="modal-resep">
         <div class="modal-content">
-            <div class="modal-header"><h3>Tambah Resep Baru</h3><button class="btn-close" onclick="tutupModal('modal-resep')">×</button></div>
+            <div class="modal-header"><h3 id="modal-resep-title">Tambah Resep Baru</h3><button class="btn-close" onclick="tutupModal('modal-resep')">×</button></div>
             <div class="modal-body">
                 <label class="form-label">Nama Menu</label>
                 <input type="text" id="resep-title" class="form-control" placeholder="Cth: Ayam Bakar">
@@ -142,13 +141,13 @@
                 <label class="form-label">Kategori</label>
                 <input type="text" id="resep-category" class="form-control" placeholder="Cth: Lauk Hewani" list="kategori-list">
                 <datalist id="kategori-list">
-                    <option value="Karbohidrat"><option value="Lauk Hewani"><option value="Lauk Nabati"><option value="Sayur"><option value="Buah"><option value="Minuman">
+                    <option value="Karbohidrat"><option value="Lauk Hewani"><option value="Lauk Nabati"><option value="Sayur"><option value="Buah"><option value="Saus"><option value="Bumbu">
                 </datalist>
 
                 <label class="form-label">Langkah SOP (Satu baris = satu langkah)</label>
                 <textarea id="resep-steps" class="form-control" rows="6" placeholder="Cth:&#10;Cuci beras&#10;Masak di rice cooker"></textarea>
             </div>
-            <div class="modal-footer"><button class="btn-save" onclick="simpanResep()">Simpan Resep</button></div>
+            <div class="modal-footer"><button class="btn-save" id="btn-simpan-resep" onclick="simpanResep()">Simpan Resep</button></div>
         </div>
     </div>
 
@@ -163,6 +162,7 @@
         let masterEmployees = [];
         let activeCategory = 'Semua';
         let selectedMenuId = null;
+        let editingMenuId = null; // Menyimpan ID resep yang sedang diedit
 
         function gantiHalaman(pageId, element) {
             document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
@@ -204,13 +204,21 @@
                 const data = await res.json();
                 masterMenus = data.menus; masterEmployees = data.employees;
 
-                // Render Resep
+                // Render Resep (Dengan Tombol Edit)
                 const resepContainer = document.getElementById('daftar-resep');
                 resepContainer.innerHTML = '';
                 if(masterMenus.length === 0) resepContainer.innerHTML = '<p style="text-align:center;">Belum ada resep.</p>';
                 masterMenus.forEach(menu => {
                     let steps = JSON.parse(menu.steps || '[]').map(s => `<li>${s.instruction}</li>`).join('');
-                    resepContainer.innerHTML += `<div class="list-item"><h4>${menu.title} <small style="color:#b45309">(${menu.category})</small></h4><ul style="font-size:13px; color:#64748b; padding-left:20px; margin:5px 0 0 0;">${steps}</ul></div>`;
+                    resepContainer.innerHTML += `
+                        <div class="list-item">
+                            <div class="resep-header">
+                                <h4>${menu.title} <small style="color:#b45309">(${menu.category})</small></h4>
+                                <button class="btn btn-edit" onclick="editResep('${menu.id}')">✏️ Edit</button>
+                            </div>
+                            <ul style="font-size:13px; color:#64748b; padding-left:20px; margin:5px 0 0 0;">${steps}</ul>
+                        </div>
+                    `;
                 });
 
                 // Render Karyawan
@@ -254,11 +262,8 @@
             await fetch(`${API_URL}?action=delete_schedule&id=${scheduleId}`, { method: 'DELETE' }); muatJadwal();
         }
 
-        // ==========================================
-        // MODAL JADWAL (Sama seperti sebelumnya)
-        // ==========================================
         function bukaModalJadwal() {
-            if (masterMenus.length === 0 || masterEmployees.length === 0) return alert("Buku resep atau data karyawan masih kosong. Silakan isi terlebih dahulu.");
+            if (masterMenus.length === 0 || masterEmployees.length === 0) return alert("Buku resep atau data karyawan masih kosong.");
             activeCategory = 'Semua'; selectedMenuId = null;
             document.getElementById('input-search').value = ''; document.getElementById('select-pic').value = '';
             document.getElementById('btn-simpan-jadwal').disabled = true;
@@ -304,12 +309,32 @@
         }
 
         // ==========================================
-        // MODAL TAMBAH RESEP & KARYAWAN (FITUR BARU)
+        // FUNGSI TAMBAH & EDIT RESEP
         // ==========================================
         function bukaModalResep() {
+            editingMenuId = null;
+            document.getElementById('modal-resep-title').innerText = "Tambah Resep Baru";
             document.getElementById('resep-title').value = '';
             document.getElementById('resep-category').value = '';
             document.getElementById('resep-steps').value = '';
+            document.getElementById('modal-resep').style.display = 'flex';
+        }
+
+        function editResep(menuId) {
+            const menu = masterMenus.find(m => m.id === menuId);
+            if (!menu) return;
+
+            editingMenuId = menuId;
+            document.getElementById('modal-resep-title').innerText = "Edit Resep";
+            document.getElementById('resep-title').value = menu.title;
+            document.getElementById('resep-category').value = menu.category;
+            
+            // Ambil SOP dan ubah jadi teks per baris
+            let stepsArray = JSON.parse(menu.steps || '[]');
+            stepsArray.sort((a,b) => a.step_order - b.step_order);
+            const stepsText = stepsArray.map(s => s.instruction).join('\n');
+            document.getElementById('resep-steps').value = stepsText;
+
             document.getElementById('modal-resep').style.display = 'flex';
         }
 
@@ -320,34 +345,37 @@
 
             if (!title || !category || !stepsText) return alert("Semua kolom wajib diisi!");
 
-            // Pisahkan teks berdasarkan enter, lalu hapus baris yang kosong
             const stepsArray = stepsText.split('\n').map(s => s.trim()).filter(s => s !== '');
+            
+            const btn = document.getElementById('btn-simpan-resep'); 
+            btn.innerText = "Menyimpan..."; btn.disabled = true;
 
-            const btn = event.target; btn.innerText = "Menyimpan..."; btn.disabled = true;
+            // Tentukan apakah ini Create atau Update
+            const actionType = editingMenuId ? 'update_menu' : 'create_menu';
+            const payload = { title: title, category: category, steps: stepsArray };
+            if (editingMenuId) payload.menu_id = editingMenuId;
 
-            await fetch(`${API_URL}?dapur=${dapurSlug}&action=create_menu`, {
+            await fetch(`${API_URL}?dapur=${dapurSlug}&action=${actionType}`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: title, category: category, steps: stepsArray })
+                body: JSON.stringify(payload)
             });
 
             btn.innerText = "Simpan Resep"; btn.disabled = false;
-            tutupModal('modal-resep'); loadMasterData(); alert("Resep berhasil ditambahkan!");
+            tutupModal('modal-resep'); loadMasterData(); 
+            alert(editingMenuId ? "Resep berhasil diperbarui!" : "Resep berhasil ditambahkan!");
         }
 
         async function tambahKaryawan() {
             const name = prompt("Masukkan Nama Karyawan Baru:");
             if (!name) return;
-
             await fetch(`${API_URL}?dapur=${dapurSlug}&action=create_employee`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: name })
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name })
             });
             loadMasterData(); alert("Karyawan berhasil ditambahkan!");
         }
 
         function refreshData() { loadMasterData(); muatJadwal(); }
 
-        // Jalankan saat aplikasi dibuka
         renderTabs(); updateHeader(); refreshData();
     </script>
 </body>
