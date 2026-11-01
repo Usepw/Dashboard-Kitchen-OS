@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Dashboard - Aplikasi Dapur</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #f8fafc; margin: 0; padding: 20px; color: #1e293b; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { margin: 0 0 10px 0; color: #0f172a; }
+        
+        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .card h2 { margin-top: 0; font-size: 18px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; font-size: 14px; margin-bottom: 5px; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        
+        .btn { background: #10b981; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; }
+        .btn:hover { background: #059669; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f1f5f9; font-weight: bold; }
+        
+        .btn-copy { background: #3b82f6; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-bottom: 5px; display: block; width: 100%;}
+        .btn-view { background: #8b5cf6; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; display: block; width: 100%;}
+
+        /* Area Detail Data Pelanggan */
+        #area-detail { display: none; margin-top: 20px; padding-top: 20px; border-top: 2px dashed #cbd5e1; }
+        .detail-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        .sop-list { margin: 0; padding-left: 20px; font-size: 13px; color: #475569; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Owner Dashboard</h1>
+        <p>Kelola Pelanggan Aplikasi Tim Persiapan Anda</p>
+    </div>
+
+    <!-- Form Tambah Pelanggan -->
+    <div class="card">
+        <h2>➕ Tambah Pelanggan Baru</h2>
+        <div class="form-group">
+            <label>Nama Dapur / Usaha</label>
+            <input type="text" id="inp-kitchen" placeholder="Contoh: Dapur Sehat Bu Ani">
+        </div>
+        <div class="form-group">
+            <label>Nama Pemilik</label>
+            <input type="text" id="inp-owner" placeholder="Contoh: Bu Ani">
+        </div>
+        <div class="form-group">
+            <label>Nomor WhatsApp</label>
+            <input type="text" id="inp-wa" placeholder="0812...">
+        </div>
+        <div class="form-group">
+            <label>Tanggal Expired (Langganan)</label>
+            <input type="date" id="inp-expired">
+        </div>
+        <button class="btn" onclick="tambahPelanggan()">Proses & Buatkan Link</button>
+    </div>
+
+    <!-- Daftar Pelanggan -->
+    <div class="card">
+        <h2>📋 Daftar Pelanggan</h2>
+        <div style="overflow-x: auto;">
+            <table id="tabel-pelanggan">
+                <thead>
+                    <tr>
+                        <th>Nama Dapur</th>
+                        <th>Pemilik / Kontak</th>
+                        <th>Expired</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="4" style="text-align:center;">Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Area Menampilkan Resep & Karyawan Pelanggan -->
+        <div id="area-detail">
+            <h3 style="color: #8b5cf6;">Data Milik: <span id="detail-nama"></span></h3>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <h4>📖 Buku Resep & SOP</h4>
+                    <div id="detail-resep"></div>
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <h4>👥 Karyawan</h4>
+                    <div id="detail-karyawan"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'https://api-dapur.usep-warman.workers.dev';
+    const BASE_APP_URL = 'https://usepw.github.io/kitchenos/'; // Sesuaikan jika URL GitHub Anda berbeda
+
+    // 1. Muat data pelanggan saat halaman dibuka
+    async function muatPelanggan() {
+        try {
+            const res = await fetch(`${API_URL}?action=get_tenants`);
+            const data = await res.json();
+            
+            const tbody = document.querySelector('#tabel-pelanggan tbody');
+            tbody.innerHTML = '';
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada pelanggan.</td></tr>';
+                return;
+            }
+
+            data.forEach(p => {
+                const linkPelanggan = `${BASE_APP_URL}?dapur=${p.slug}`;
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${p.name}</strong><br><small style="color:#64748b">${p.slug}</small></td>
+                        <td>${p.owner_name || '-'}<br><small>${p.wa_number || '-'}</small></td>
+                        <td>${p.expires_at || '-'}</td>
+                        <td>
+                            <button class="btn-copy" onclick="copyLink('${linkPelanggan}')">Copy Link</button>
+                            <button class="btn-view" onclick="lihatData('${p.slug}', '${p.name}')">Lihat Data</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // 2. Fungsi Tambah Pelanggan
+    async function tambahPelanggan() {
+        const kitchen = document.getElementById('inp-kitchen').value;
+        const owner = document.getElementById('inp-owner').value;
+        const wa = document.getElementById('inp-wa').value;
+        const expired = document.getElementById('inp-expired').value;
+
+        if (!kitchen || !owner) return alert("Nama Dapur dan Pemilik wajib diisi!");
+
+        try {
+            await fetch(`${API_URL}?action=create_tenant`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ kitchen_name: kitchen, owner_name: owner, wa_number: wa, expires_at: expired })
+            });
+            
+            document.getElementById('inp-kitchen').value = '';
+            document.getElementById('inp-owner').value = '';
+            document.getElementById('inp-wa').value = '';
+            document.getElementById('inp-expired').value = '';
+            
+            muatPelanggan();
+            alert("Pelanggan berhasil ditambahkan!");
+        } catch (err) {
+            alert("Gagal: " + err.message);
+        }
+    }
+
+    function copyLink(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Link berhasil di-copy!\n\n" + text);
+        });
+    }
+
+    // 3. Fungsi Melihat Data Spesifik Pelanggan
+    async function lihatData(slug, namaDapur) {
+        document.getElementById('area-detail').style.display = 'block';
+        document.getElementById('detail-nama').innerText = namaDapur;
+        document.getElementById('detail-resep').innerHTML = '<p>Memuat resep...</p>';
+        document.getElementById('detail-karyawan').innerHTML = '<p>Memuat karyawan...</p>';
+
+        try {
+            const res = await fetch(`${API_URL}?action=get_tenant_details&slug=${slug}`);
+            const data = await res.json();
+
+            // Render Resep
+            const resepContainer = document.getElementById('detail-resep');
+            resepContainer.innerHTML = '';
+            if(data.menus.length === 0) resepContainer.innerHTML = '<p style="font-size:13px;">Belum ada resep.</p>';
+            data.menus.forEach(menu => {
+                let steps = JSON.parse(menu.steps || '[]').map(s => `<li>${s.instruction}</li>`).join('');
+                resepContainer.innerHTML += `
+                    <div class="detail-box">
+                        <strong>${menu.title} (${menu.category})</strong>
+                        <ul class="sop-list">${steps || '<li>Tanpa SOP</li>'}</ul>
+                    </div>
+                `;
+            });
+
+            // Render Karyawan
+            const karyawanContainer = document.getElementById('detail-karyawan');
+            karyawanContainer.innerHTML = '';
+            if(data.employees.length === 0) karyawanContainer.innerHTML = '<p style="font-size:13px;">Belum ada karyawan.</p>';
+            data.employees.forEach(emp => {
+                karyawanContainer.innerHTML += `<div class="detail-box">👤 ${emp.name}</div>`;
+            });
+
+        } catch (err) {
+            alert("Gagal mengambil data: " + err.message);
+        }
+    }
+
+    muatPelanggan();
+</script>
+
+</body>
+</html>
