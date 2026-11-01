@@ -8,7 +8,6 @@
         :root { --primary: #1e293b; --accent: #10b981; --danger: #ef4444; --gold: #fbbf24; --bg: #f4f6f8; --text: #334155; }
         body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); padding-bottom: 70px; }
         
-        /* LAYAR LOGIN */
         #login-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--primary); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; }
         .login-box { background: white; padding: 30px 20px; border-radius: 12px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .login-box h2 { margin-top: 0; color: var(--primary); }
@@ -200,6 +199,11 @@
 
         function applyRoleUI() {
             document.getElementById('login-screen').style.display = 'none';
+            
+            // PERBAIKAN: Ubah tulisan MEMUAT... menjadi Nama Dapur
+            let namaDapurTampil = dapurSlug.replace(/-/g, ' ').toUpperCase();
+            document.getElementById('brand-dapur').innerText = namaDapurTampil;
+
             if (userRole === 'admin') {
                 document.getElementById('btn-tambah-jadwal').style.display = 'flex';
                 document.getElementById('btn-tambah-resep').style.display = 'flex';
@@ -224,7 +228,7 @@
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById(`page-${pageId}`).classList.add('active');
             element.classList.add('active');
-            document.getElementById('brand-dapur').innerText = dapurSlug.toUpperCase();
+            // (Tidak perlu update brand lagi di sini karena sudah di-handle applyRoleUI)
         }
 
         function getMonday(d) { d = new Date(d); var day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1); return new Date(d.setDate(diff)); }
@@ -262,7 +266,9 @@
                     return;
                 }
 
-                masterMenus = data.menus; masterEmployees = data.employees;
+                masterMenus = data.menus || []; 
+                masterEmployees = data.employees || [];
+                
                 renderResepChips(); renderResepList();
 
                 const karyawanContainer = document.getElementById('daftar-karyawan');
@@ -352,7 +358,7 @@
         }
 
         function bukaModalJadwal() {
-            if (masterMenus.length === 0 || masterEmployees.length === 0) return alert("Buku resep atau data karyawan masih kosong.");
+            if (masterMenus.length === 0 || masterEmployees.length === 0) return alert("Buku resep atau data karyawan masih kosong. Silakan buat resep & karyawan terlebih dahulu.");
             activeCategory = 'Semua'; selectedMenuId = null;
             document.getElementById('input-search').value = ''; document.getElementById('select-pic').value = '';
             document.getElementById('btn-simpan-jadwal').disabled = true;
