@@ -1,247 +1,496 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Kitchen Manager Dashboard</title>
-<style>
-  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  :root{
-    --primary:#0F172A;--accent:#2563EB;--bg:#F7F8FA;--card:#FFFFFF;
-    --text:#0F172A;--text-soft:#475569;--text-mute:#94A3B8;
-    --border:#E2E8F0;--danger:#DC2626;--success:#16A34A;--warning:#F59E0B;
-    --radius:16px;--radius-sm:10px;
-    --shadow:0 1px 3px rgba(15,23,42,.06),0 4px 12px rgba(15,23,42,.04);
-  }
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;display:flex;justify-content:center;}
-  #app{width:100%;max-width:520px;min-height:100vh;background:var(--bg);padding-bottom:24px;overflow-x:hidden;}
-  
-  .topbar{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;}
-  .topbar-title{font-weight:800;font-size:16px;}
-  .topbar-title small{display:block;font-size:11px;color:var(--text-mute);font-weight:600;margin-top:2px;}
-  
-  .screen{padding:16px;animation:fade .22s ease;}
-  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tugas Tim Persiapan</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --gold: #fbbf24;
+            --bg: #f4f6f8;
+            --text: #334155;
+        }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); padding-bottom: 70px; }
+        
+        /* Header */
+        .header { background: var(--primary); color: white; padding: 20px 15px 15px 15px; }
+        .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        .header-info { display: flex; flex-direction: column; gap: 4px; }
+        .brand { color: var(--gold); font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: bold; }
+        .date { font-size: 14px; color: #cbd5e1; margin-top: 2px; }
+        .btn-refresh { background: transparent; border: 1px solid #475569; color: white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
+        .btn-refresh:active { background: #334155; }
 
-  .hero{background:linear-gradient(135deg,#1E293B 0%,#0F172A 100%);border-radius:20px;padding:20px 18px;color:#fff;margin-bottom:20px;box-shadow:0 8px 24px rgba(15,23,42,.15);}
-  .hero-label{font-size:11px;letter-spacing:1px;text-transform:uppercase;opacity:.8;font-weight:700;}
-  .hero-title{font-size:20px;font-weight:800;margin:5px 0 3px;}
-  .hero-date{margin-top:12px;background:rgba(255,255,255,.1);padding:8px 12px;border-radius:8px;display:inline-block;font-size:13px;font-weight:600;}
+        /* Tab Hari */
+        .tabs { display: flex; background: var(--primary); overflow-x: auto; border-top: 1px solid #334155; }
+        .tab { flex: 1; text-align: center; padding: 15px 10px; color: #94a3b8; font-size: 14px; font-weight: bold; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
+        .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
 
-  .section-title{font-weight:800;font-size:13.5px;color:var(--text-soft);margin:24px 0 12px;text-transform:uppercase;letter-spacing:.5px;display:flex;justify-content:space-between;}
-  
-  .card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:12px;border:1px solid var(--border);}
-  .card.alert{border-left:4px solid var(--danger);background:#FEF2F2;}
-  .card.success{border-left:4px solid var(--success);background:#F0FDF4;}
-  
-  .menu-title{font-weight:800;font-size:14px;margin-bottom:4px;color:var(--text);}
-  .menu-meta{font-size:12px;color:var(--text-soft);margin-bottom:10px;display:flex;gap:10px;}
-  .menu-status{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:10px;font-weight:800;}
-  .status-fail{background:#FEE2E2;color:#991B1B;}
-  .status-pass{background:#DCFCE7;color:#166534;}
-  
-  .check-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;}
-  .check-item{font-size:11.5px;font-weight:600;display:flex;align-items:center;gap:5px;}
+        /* Konten */
+        .content { padding: 15px; display: none; }
+        .content.active { display: block; }
 
-  /* KANBAN BOARD */
-  .kanban-board{display:flex;gap:12px;overflow-x:auto;padding-bottom:16px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
-  .kanban-board::-webkit-scrollbar{display:none;}
-  .kanban-col{flex:0 0 260px;scroll-snap-align:start;background:#F1F5F9;border-radius:12px;padding:12px;}
-  .kanban-col-header{font-weight:800;font-size:12px;margin-bottom:12px;display:flex;justify-content:space-between;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px;}
-  
-  .kanban-card{background:var(--card);border-radius:10px;padding:12px;margin-bottom:10px;box-shadow:0 1px 2px rgba(0,0,0,.05);border:1px solid var(--border);}
-  .kanban-card .title{font-weight:700;font-size:13px;line-height:1.3;margin-bottom:6px;}
-  .kanban-card .meta{font-size:11px;color:var(--text-soft);display:flex;align-items:center;gap:6px;margin-bottom:8px;}
-  .kanban-card .desc{font-size:11.5px;color:var(--text-soft);background:#F8FAFC;padding:8px;border-radius:6px;margin-bottom:8px;}
-  .kanban-card .action{font-size:11px;color:var(--success);font-weight:600;margin-bottom:8px;}
-  .kanban-tag{display:inline-block;font-size:9px;font-weight:800;padding:3px 6px;border-radius:4px;background:#E2E8F0;color:#475569;}
+        /* Kartu Jadwal */
+        .card { background: white; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 4px solid var(--accent); }
+        .category { font-weight: bold; color: #b45309; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; }
+        .title { font-size: 18px; font-weight: bold; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .pic { font-size: 13px; color: #64748b; margin-bottom: 10px; background: #f1f5f9; display: inline-block; padding: 3px 8px; border-radius: 4px; }
+        .step { display: flex; align-items: flex-start; padding: 8px 0; border-top: 1px dashed #e2e8f0; font-size: 14px; }
+        .step input[type="checkbox"] { margin-right: 12px; margin-top: 3px; transform: scale(1.3); }
+        .step.done span { text-decoration: line-through; color: #94a3b8; }
+        
+        /* Tombol */
+        .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-add { background: var(--accent); color: white; width: 100%; margin-bottom: 15px; }
+        .btn-delete { background: var(--danger); color: white; padding: 6px 10px; font-size: 12px; }
 
-  .empty{padding:20px;text-align:center;color:var(--text-mute);font-size:13px;background:rgba(255,255,255,.5);border-radius:8px;}
-  .loading{padding:40px;text-align:center;font-weight:700;color:var(--accent);}
-  .error-box{background:#FEE2E2;color:#991B1B;padding:16px;border-radius:12px;font-size:13px;margin-bottom:16px;}
-</style>
+        /* List Resep & Karyawan */
+        .list-item { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .list-item h4 { margin: 0 0 5px 0; font-size: 16px; }
+        .list-item p { margin: 0; font-size: 13px; color: #64748b; }
+
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 20; }
+        .nav-item { flex: 1; text-align: center; padding: 12px 0; color: #94a3b8; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item span { display: block; font-size: 20px; margin-bottom: 3px; }
+
+        .loading { text-align: center; color: #64748b; padding: 20px; }
+
+        /* ==========================================
+           MODAL TAMBAH JADWAL (UI BARU)
+           ========================================== */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 50; display: none; align-items: flex-end; }
+        .modal-content { background: white; width: 100%; height: 85%; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        .modal-header { padding: 15px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { margin: 0; font-size: 18px; }
+        .btn-close { background: none; border: none; font-size: 24px; color: #64748b; cursor: pointer; }
+
+        .modal-body { padding: 15px 20px; overflow-y: auto; flex: 1; }
+        
+        .form-label { font-weight: bold; font-size: 14px; margin-bottom: 8px; display: block; color: var(--primary); }
+        
+        /* Kategori Chips */
+        .category-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; }
+        .chip { padding: 8px 15px; background: #f1f5f9; color: #475569; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; border: 1px solid #cbd5e1; }
+        .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* Search Bar */
+        .search-box { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; box-sizing: border-box; margin-bottom: 15px; }
+        .search-box:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
+
+        /* List Menu di Modal */
+        .menu-list { display: flex; flex-direction: column; gap: 10px; }
+        .menu-item { padding: 12px 15px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .menu-item:active { background: #f8fafc; }
+        .menu-item.selected { border-color: var(--accent); background: #ecfdf5; }
+        .menu-item-info h4 { margin: 0 0 4px 0; font-size: 15px; }
+        .menu-item-info p { margin: 0; font-size: 12px; color: #64748b; }
+
+        /* Dropdown PIC */
+        .pic-select { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; background: white; margin-bottom: 20px; }
+
+        .modal-footer { padding: 15px 20px; border-top: 1px solid #e2e8f0; background: white; }
+        .btn-save { background: var(--accent); color: white; width: 100%; padding: 14px; font-size: 16px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-save:disabled { background: #cbd5e1; cursor: not-allowed; }
+    </style>
 </head>
 <body>
-<div id="app">
-  <div class="topbar">
-    <div class="topbar-title">📊 Manager Dashboard<small>Sudimara Barat 2</small></div>
-    <button onclick="fetchData()" style="background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;">↻ Refresh</button>
-  </div>
 
-  <div class="screen" id="main-screen">
-    <div class="hero">
-      <div class="hero-label">Kitchen Command Center</div>
-      <div class="hero-title">Pantauan Harian</div>
-      <div class="hero-date" id="todayDate">Memuat...</div>
-    </div>
-
-    <div id="loading" class="loading">⏳ Menghubungkan ke Google Sheets...</div>
-    <div id="error" class="error-box" style="display:none;"></div>
-
-    <div id="content" style="display:none;">
-      
-      <!-- VALIDASI HARIAN -->
-      <div class="section-title">🍲 Validasi Menu Hari Ini</div>
-      <div id="validasiContainer"></div>
-
-      <!-- KANBAN PDCA -->
-      <div class="section-title">📋 Papan Kanban (Tindak Lanjut)</div>
-      <div class="kanban-board" id="kanbanContainer"></div>
-
-    </div>
-  </div>
-</div>
-
-<script>
-// === GANTI URL INI DENGAN URL APPS SCRIPT ANDA ===
-const API_URL = "https://script.google.com/macros/s/AKfycbxOq_a-8hXGcCiXKyA8gjBKuZhg5Lp7OJmKdKLLe476dSnsok3haP7fpTSGArgmivQ4wA/exec";
-
-const today = new Date();
-const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
-document.getElementById('todayDate').textContent = today.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-async function fetchData() {
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('content').style.display = 'none';
-  document.getElementById('error').style.display = 'none';
-
-  if(API_URL === "URL_APPS_SCRIPT_ANDA_DI_SINI") {
-    showError("Anda belum memasukkan URL Apps Script.");
-    return;
-  }
-
-  try {
-    const response = await fetch(`${API_URL}?action=getDashboardData&date=${todayStr}`);
-    const data = await response.json();
-
-    if (!data.success) throw new Error(data.error || "Gagal mengambil data");
-
-    renderValidasi(data.validasi);
-    renderKanban(data.kejadian, data.anggota);
-
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('content').style.display = 'block';
-
-  } catch (err) {
-    showError("Gagal terhubung ke database: " + err.message);
-  }
-}
-
-function showError(msg) {
-  document.getElementById('loading').style.display = 'none';
-  const err = document.getElementById('error');
-  err.textContent = "⚠️ " + msg;
-  err.style.display = 'block';
-}
-
-function renderValidasi(rows) {
-  const container = document.getElementById('validasiContainer');
-  if (!rows || rows.length === 0) {
-    container.innerHTML = `<div class="card empty">Belum ada validasi menu untuk hari ini.</div>`;
-    return;
-  }
-
-  let html = '';
-  rows.forEach(r => {
-    const isPass = r['Status Keseluruhan'] === 'Sesuai' || r['Status Keseluruhan'] === 'Lulus';
-    const cardClass = isPass ? 'success' : 'alert';
-    const cek = (val) => val === 'Ya' ? '✅' : '❌';
-    
-    html += `
-      <div class="card ${cardClass}">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div>
-            <div class="menu-title">${r['Nama Menu'] || '-'}</div>
-            <div class="menu-meta">
-              <span>🍱 ${r['Komponen Menu'] || '-'}</span>
-              <span>👨‍🍳 ${r['Koki Penanggung Jawab'] || '-'}</span>
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-top">
+            <div class="header-info">
+                <span class="brand" id="brand-dapur">CWFN • SB2</span>
+                <h1>Tugas Tim Persiapan</h1>
+                <span class="date" id="tgl-header">Memuat tanggal...</span>
             </div>
-          </div>
-          <div class="menu-status ${isPass ? 'status-pass' : 'status-fail'}">
-            ${isPass ? 'LULUS' : 'PERIKSA'}
-          </div>
+            <button class="btn-refresh" onclick="refreshData()" title="Muat Ulang">↻</button>
         </div>
+        <div class="tabs" id="tab-container"></div>
+    </div>
+
+    <!-- KONTEN: JADWAL -->
+    <div id="page-jadwal" class="content active">
+        <button class="btn btn-add" onclick="bukaModalJadwal()">➕ Tambah Jadwal Menu</button>
+        <div id="daftar-jadwal"><div class="loading">Memuat jadwal...</div></div>
+    </div>
+
+    <!-- KONTEN: BUKU RESEP -->
+    <div id="page-resep" class="content">
+        <h3>Buku Resep & SOP</h3>
+        <div id="daftar-resep"><div class="loading">Memuat resep...</div></div>
+    </div>
+
+    <!-- KONTEN: KARYAWAN -->
+    <div id="page-karyawan" class="content">
+        <h3>Data Karyawan</h3>
+        <div id="daftar-karyawan"><div class="loading">Memuat karyawan...</div></div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="gantiHalaman('jadwal', this)"><span>📅</span> Jadwal</div>
+        <div class="nav-item" onclick="gantiHalaman('resep', this)"><span>📖</span> Buku Resep</div>
+        <div class="nav-item" onclick="gantiHalaman('karyawan', this)"><span>👥</span> Karyawan</div>
+    </div>
+
+    <!-- ==========================================
+         MODAL TAMBAH JADWAL
+         ========================================== -->
+    <div class="modal-overlay" id="modal-jadwal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Pilih Menu & PIC</h3>
+                <button class="btn-close" onclick="tutupModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- Pilih Kategori -->
+                <label class="form-label">1. Pilih Kategori</label>
+                <div class="category-chips" id="kategori-chips"></div>
+
+                <!-- Pencarian & List Menu -->
+                <label class="form-label">2. Pilih Menu</label>
+                <input type="text" id="input-search" class="search-box" placeholder="🔍 Ketik nama menu (cth: Ayam)..." oninput="renderMenuList()">
+                <div class="menu-list" id="daftar-menu-modal"></div>
+
+                <hr style="border: 0; border-top: 1px dashed #cbd5e1; margin: 20px 0;">
+
+                <!-- Pilih PIC -->
+                <label class="form-label">3. Pilih PIC (Penanggung Jawab)</label>
+                <select id="select-pic" class="pic-select" onchange="cekTombolSimpan()">
+                    <option value="">-- Pilih Karyawan --</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-save" id="btn-simpan-jadwal" onclick="simpanJadwal()" disabled>Simpan Jadwal</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://api-dapur.usep-warman.workers.dev';
+        const urlParams = new URLSearchParams(window.location.search);
+        const dapurSlug = urlParams.get('dapur') || 'sb2';
+
+        let selectedDate = '';
+        let selectedDayName = '';
         
-        <div class="check-grid">
-          <div class="check-item">${cek(r['Rasa Sesuai Standar?'])} Rasa</div>
-          <div class="check-item">${cek(r['Tekstur Sesuai Standar?'])} Tekstur</div>
-          <div class="check-item">${cek(r['Visual Sesuai Standar?'])} Visual</div>
-          <div class="check-item">${cek(r['Aroma Sesuai Standar?'])} Aroma</div>
-        </div>
-      </div>
-    `;
-  });
-  container.innerHTML = html;
-}
+        let masterMenus = [];
+        let masterEmployees = [];
 
-function renderKanban(kejadianRows, anggotaRows) {
-  const container = document.getElementById('kanbanContainer');
-  if (!kejadianRows || kejadianRows.length === 0) {
-    container.innerHTML = `<div class="card empty" style="width:100%;">Belum ada data tindak lanjut.</div>`;
-    return;
-  }
+        // State untuk Modal
+        let activeCategory = 'Semua';
+        let selectedMenuId = null;
 
-  const columns = ['Backlog', 'In Progress', 'Verification', 'Done'];
-  let html = '';
-
-  columns.forEach(col => {
-    // Filter data berdasarkan kolom Kanban
-    const items = kejadianRows.filter(r => (r.kanban_status || '').trim().toLowerCase() === col.toLowerCase());
-    
-    html += `
-      <div class="kanban-col">
-        <div class="kanban-col-header">
-          <span>${col}</span>
-          <span style="background:#E2E8F0; padding:2px 6px; border-radius:4px; font-size:10px;">${items.length}</span>
-        </div>
-    `;
-
-    if (items.length === 0) {
-      html += `<div class="empty" style="font-size:11px; padding:12px;">Kosong</div>`;
-    } else {
-      items.forEach(r => {
-        // Cari nama anggota
-        let nama = r.member_id || 'Sistem';
-        if(anggotaRows) {
-          const member = anggotaRows.find(a => a.member_id === r.member_id);
-          if(member) nama = member.nama;
+        // ==========================================
+        // NAVIGASI & RENDER DASAR
+        // ==========================================
+        function gantiHalaman(pageId, element) {
+            document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            element.classList.add('active');
         }
-        
-        let icon = '📝';
-        if(r.kategori === 'Diskusi_1on1') icon = '🗣️';
-        if(r.kategori === 'Pelanggaran') icon = '🔴';
 
-        html += `
-          <div class="kanban-card">
-            <div class="title">${icon} ${r.judul || '-'}</div>
-            <div class="meta">👤 ${nama}</div>
+        function getMonday(d) {
+            d = new Date(d);
+            var day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        function formatDate(date) {
+            const offset = date.getTimezoneOffset();
+            const d = new Date(date.getTime() - (offset*60*1000));
+            return d.toISOString().split('T')[0];
+        }
+
+        function updateHeader() {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateObj = new Date(selectedDate);
+            dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset()); 
+            document.getElementById('tgl-header').innerText = dateObj.toLocaleDateString('id-ID', options);
+        }
+
+        function renderTabs() {
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const tabContainer = document.getElementById('tab-container');
+            tabContainer.innerHTML = '';
             
-            ${r.deskripsi ? `<div class="desc">${r.deskripsi}</div>` : ''}
-            ${r.tindakan ? `<div class="action">✅ ${r.tindakan}</div>` : ''}
+            let today = new Date();
+            let dayOfWeek = today.getDay(); 
+            let sunday = new Date(today);
+            sunday.setDate(today.getDate() - dayOfWeek);
+
+            days.forEach((day, index) => {
+                const date = new Date(sunday);
+                date.setDate(sunday.getDate() + index);
+                const dateString = formatDate(date);
+
+                if(!selectedDate && index === dayOfWeek) {
+                    selectedDate = dateString;
+                    selectedDayName = day;
+                }
+
+                const tab = document.createElement('div');
+                tab.className = `tab ${day === selectedDayName ? 'active' : ''}`;
+                tab.innerText = day;
+                tab.onclick = () => {
+                    selectedDayName = day;
+                    selectedDate = dateString;
+                    renderTabs();
+                    updateHeader();
+                    muatJadwal();
+                };
+                tabContainer.appendChild(tab);
+            });
+        }
+
+        // ==========================================
+        // LOAD DATA MASTER
+        // ==========================================
+        async function loadMasterData() {
+            try {
+                const res = await fetch(`${API_URL}?dapur=${dapurSlug}&action=get_master`);
+                const data = await res.json();
+                masterMenus = data.menus;
+                masterEmployees = data.employees;
+
+                // Render List Resep
+                const resepContainer = document.getElementById('daftar-resep');
+                resepContainer.innerHTML = '';
+                if(masterMenus.length === 0) resepContainer.innerHTML = '<p>Belum ada resep.</p>';
+                masterMenus.forEach(menu => {
+                    let steps = JSON.parse(menu.steps || '[]').map(s => `<li>${s.instruction}</li>`).join('');
+                    resepContainer.innerHTML += `
+                        <div class="list-item">
+                            <h4>${menu.title} <small style="color:#b45309">(${menu.category})</small></h4>
+                            <ul style="font-size:13px; color:#64748b; padding-left:20px; margin-top:5px; margin-bottom:0;">${steps}</ul>
+                        </div>
+                    `;
+                });
+
+                // Render List Karyawan
+                const karyawanContainer = document.getElementById('daftar-karyawan');
+                karyawanContainer.innerHTML = '';
+                if(masterEmployees.length === 0) karyawanContainer.innerHTML = '<p>Belum ada karyawan.</p>';
+                masterEmployees.forEach(emp => {
+                    karyawanContainer.innerHTML += `<div class="list-item"><h4>👤 ${emp.name}</h4></div>`;
+                });
+
+                // Isi Dropdown PIC di Modal
+                const selectPic = document.getElementById('select-pic');
+                selectPic.innerHTML = '<option value="">-- Pilih Karyawan --</option>';
+                masterEmployees.forEach(emp => {
+                    selectPic.innerHTML += `<option value="${emp.id}">${emp.name}</option>`;
+                });
+
+            } catch (err) {
+                console.error("Gagal load master data", err);
+            }
+        }
+
+        // ==========================================
+        // FUNGSI JADWAL HARIAN
+        // ==========================================
+        async function muatJadwal() {
+            const container = document.getElementById('daftar-jadwal');
+            container.innerHTML = '<div class="loading">Memuat jadwal...</div>';
+            try {
+                const res = await fetch(`${API_URL}?dapur=${dapurSlug}&date=${selectedDate}`);
+                const data = await res.json();
+                
+                container.innerHTML = '';
+                if (data.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding: 30px 10px; color:#64748b;">
+                            <h3 style="color:#334155; margin-bottom:10px;">Belum ada menu</h3>
+                            <p>Jadwal untuk ${selectedDayName} belum diisi.</p>
+                        </div>`;
+                    return;
+                }
+
+                data.forEach(sch => {
+                    let stepsHtml = '';
+                    let stepsArray = JSON.parse(sch.steps || '[]');
+                    stepsArray.sort((a, b) => a.step_order - b.step_order);
+
+                    stepsArray.forEach(step => {
+                        const isChecked = step.is_completed === 1;
+                        stepsHtml += `
+                            <label class="step ${isChecked ? 'done' : ''}">
+                                <input type="checkbox" ${isChecked ? 'checked' : ''} 
+                                    onchange="toggleStep('${step.id}', ${isChecked})">
+                                <span>${step.instruction}</span>
+                            </label>
+                        `;
+                    });
+
+                    container.innerHTML += `
+                        <div class="card">
+                            <div class="category">${sch.category}</div>
+                            <div class="title">
+                                ${sch.menu_title}
+                                <button class="btn btn-delete" onclick="hapusJadwal('${sch.schedule_id}')">🗑️</button>
+                            </div>
+                            <div class="pic">👤 PIC: ${sch.employee_name}</div>
+                            <div>${stepsHtml}</div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                container.innerHTML = `<p style="color:red;">Gagal memuat jadwal: ${err.message}</p>`;
+            }
+        }
+
+        async function toggleStep(stepId, currentStatus) {
+            await fetch(`${API_URL}?action=toggle_step`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ step_id: stepId, is_completed: !currentStatus })
+            });
+            muatJadwal();
+        }
+
+        async function hapusJadwal(scheduleId) {
+            if (!confirm("Yakin ingin menghapus jadwal ini?")) return;
+            await fetch(`${API_URL}?action=delete_schedule&id=${scheduleId}`, { method: 'DELETE' });
+            muatJadwal();
+        }
+
+        // ==========================================
+        // LOGIKA MODAL TAMBAH JADWAL (BARU)
+        // ==========================================
+        function bukaModalJadwal() {
+            if (masterMenus.length === 0 || masterEmployees.length === 0) {
+                alert("Buku resep atau data karyawan masih kosong.");
+                return;
+            }
             
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-               <span class="kanban-tag">${r.pdca_phase || '-'}</span>
-               ${r.follow_up_tanggal ? `<span style="font-size:10px; color:var(--danger); font-weight:700;">⏰ ${formatTgl(r.follow_up_tanggal)}</span>` : ''}
-            </div>
-          </div>
-        `;
-      });
-    }
+            // Reset state
+            activeCategory = 'Semua';
+            selectedMenuId = null;
+            document.getElementById('input-search').value = '';
+            document.getElementById('select-pic').value = '';
+            document.getElementById('btn-simpan-jadwal').disabled = true;
+            
+            renderKategoriChips();
+            renderMenuList();
+            
+            document.getElementById('modal-jadwal').style.display = 'flex';
+        }
 
-    html += `</div>`;
-  });
+        function tutupModal() {
+            document.getElementById('modal-jadwal').style.display = 'none';
+        }
 
-  container.innerHTML = html;
-}
+        function renderKategoriChips() {
+            const container = document.getElementById('kategori-chips');
+            container.innerHTML = '';
+            
+            // Ambil semua kategori unik
+            const categories = ['Semua', ...new Set(masterMenus.map(m => m.category))];
+            
+            categories.forEach(cat => {
+                const chip = document.createElement('div');
+                chip.className = `chip ${cat === activeCategory ? 'active' : ''}`;
+                chip.innerText = cat;
+                chip.onclick = () => {
+                    activeCategory = cat;
+                    renderKategoriChips();
+                    renderMenuList();
+                };
+                container.appendChild(chip);
+            });
+        }
 
-function formatTgl(dateStr) {
-  if (!dateStr) return '-';
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-}
+        function renderMenuList() {
+            const container = document.getElementById('daftar-menu-modal');
+            const searchQuery = document.getElementById('input-search').value.toLowerCase();
+            container.innerHTML = '';
 
-fetchData();
-</script>
+            // Filter berdasarkan kategori & search
+            const filteredMenus = masterMenus.filter(m => {
+                const matchCategory = activeCategory === 'Semua' || m.category === activeCategory;
+                const matchSearch = m.title.toLowerCase().includes(searchQuery);
+                return matchCategory && matchSearch;
+            });
+
+            if(filteredMenus.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#64748b; font-size:14px;">Menu tidak ditemukan.</p>';
+                return;
+            }
+
+            filteredMenus.forEach(menu => {
+                const div = document.createElement('div');
+                div.className = `menu-item ${selectedMenuId === menu.id ? 'selected' : ''}`;
+                div.innerHTML = `
+                    <div class="menu-item-info">
+                        <h4>${menu.title}</h4>
+                        <p>${menu.category}</p>
+                    </div>
+                    ${selectedMenuId === menu.id ? '<span style="color:var(--accent); font-weight:bold;">✓</span>' : ''}
+                `;
+                div.onclick = () => {
+                    selectedMenuId = menu.id;
+                    renderMenuList(); // Re-render to show selection
+                    cekTombolSimpan();
+                };
+                container.appendChild(div);
+            });
+        }
+
+        function cekTombolSimpan() {
+            const picId = document.getElementById('select-pic').value;
+            const btn = document.getElementById('btn-simpan-jadwal');
+            if (selectedMenuId && picId) {
+                btn.disabled = false;
+            } else {
+                btn.disabled = true;
+            }
+        }
+
+        async function simpanJadwal() {
+            const picId = document.getElementById('select-pic').value;
+            const btn = document.getElementById('btn-simpan-jadwal');
+            
+            btn.innerText = "Menyimpan...";
+            btn.disabled = true;
+
+            try {
+                await fetch(`${API_URL}?dapur=${dapurSlug}&action=create_schedule`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        menu_id: selectedMenuId, 
+                        employee_id: picId,
+                        menu_date: selectedDate
+                    })
+                });
+                tutupModal();
+                muatJadwal();
+            } catch (err) {
+                alert("Gagal menyimpan jadwal.");
+                btn.innerText = "Simpan Jadwal";
+                btn.disabled = false;
+            }
+        }
+
+        function refreshData() {
+            loadMasterData();
+            muatJadwal();
+        }
+
+        // Jalankan saat aplikasi dibuka
+        renderTabs();
+        updateHeader();
+        refreshData();
+    </script>
 </body>
 </html>
