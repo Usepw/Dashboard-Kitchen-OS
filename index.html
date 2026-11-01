@@ -6,16 +6,10 @@
     <title>Tugas Tim Persiapan</title>
     <style>
         :root {
-            --primary: #1e293b;
-            --accent: #10b981;
-            --danger: #ef4444;
-            --gold: #fbbf24;
-            --bg: #f4f6f8;
-            --text: #334155;
+            --primary: #1e293b; --accent: #10b981; --danger: #ef4444; --gold: #fbbf24; --bg: #f4f6f8; --text: #334155;
         }
         body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); padding-bottom: 70px; }
         
-        /* Header */
         .header { background: var(--primary); color: white; padding: 20px 15px 15px 15px; }
         .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
         .header-info { display: flex; flex-direction: column; gap: 4px; }
@@ -23,18 +17,14 @@
         .header h1 { margin: 0; font-size: 24px; font-weight: bold; }
         .date { font-size: 14px; color: #cbd5e1; margin-top: 2px; }
         .btn-refresh { background: transparent; border: 1px solid #475569; color: white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
-        .btn-refresh:active { background: #334155; }
 
-        /* Tab Hari */
         .tabs { display: flex; background: var(--primary); overflow-x: auto; border-top: 1px solid #334155; }
         .tab { flex: 1; text-align: center; padding: 15px 10px; color: #94a3b8; font-size: 14px; font-weight: bold; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
         .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
 
-        /* Konten */
         .content { padding: 15px; display: none; }
         .content.active { display: block; }
 
-        /* Kartu Jadwal */
         .card { background: white; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 4px solid var(--accent); }
         .category { font-weight: bold; color: #b45309; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; }
         .title { font-size: 18px; font-weight: bold; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
@@ -43,17 +33,14 @@
         .step input[type="checkbox"] { margin-right: 12px; margin-top: 3px; transform: scale(1.3); }
         .step.done span { text-decoration: line-through; color: #94a3b8; }
         
-        /* Tombol */
         .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .btn-add { background: var(--accent); color: white; width: 100%; margin-bottom: 15px; }
         .btn-delete { background: var(--danger); color: white; padding: 6px 10px; font-size: 12px; }
 
-        /* List Resep & Karyawan */
         .list-item { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .list-item h4 { margin: 0 0 5px 0; font-size: 16px; }
         .list-item p { margin: 0; font-size: 13px; color: #64748b; }
 
-        /* Bottom Nav */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 20; }
         .nav-item { flex: 1; text-align: center; padding: 12px 0; color: #94a3b8; font-size: 12px; font-weight: bold; cursor: pointer; }
         .nav-item.active { color: var(--primary); }
@@ -61,49 +48,34 @@
 
         .loading { text-align: center; color: #64748b; padding: 20px; }
 
-        /* ==========================================
-           MODAL TAMBAH JADWAL (UI BARU)
-           ========================================== */
+        /* MODAL GLOBAL */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 50; display: none; align-items: flex-end; }
         .modal-content { background: white; width: 100%; height: 85%; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        
         .modal-header { padding: 15px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 18px; }
         .btn-close { background: none; border: none; font-size: 24px; color: #64748b; cursor: pointer; }
-
         .modal-body { padding: 15px 20px; overflow-y: auto; flex: 1; }
-        
         .form-label { font-weight: bold; font-size: 14px; margin-bottom: 8px; display: block; color: var(--primary); }
-        
-        /* Kategori Chips */
+        .form-control { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; box-sizing: border-box; margin-bottom: 15px; font-family: inherit; }
+        .modal-footer { padding: 15px 20px; border-top: 1px solid #e2e8f0; background: white; }
+        .btn-save { background: var(--accent); color: white; width: 100%; padding: 14px; font-size: 16px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-save:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+        /* KHUSUS MODAL JADWAL */
         .category-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; }
         .chip { padding: 8px 15px; background: #f1f5f9; color: #475569; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; border: 1px solid #cbd5e1; }
         .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
-
-        /* Search Bar */
-        .search-box { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; box-sizing: border-box; margin-bottom: 15px; }
-        .search-box:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
-
-        /* List Menu di Modal */
         .menu-list { display: flex; flex-direction: column; gap: 10px; }
         .menu-item { padding: 12px 15px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .menu-item:active { background: #f8fafc; }
         .menu-item.selected { border-color: var(--accent); background: #ecfdf5; }
         .menu-item-info h4 { margin: 0 0 4px 0; font-size: 15px; }
         .menu-item-info p { margin: 0; font-size: 12px; color: #64748b; }
-
-        /* Dropdown PIC */
-        .pic-select { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; background: white; margin-bottom: 20px; }
-
-        .modal-footer { padding: 15px 20px; border-top: 1px solid #e2e8f0; background: white; }
-        .btn-save { background: var(--accent); color: white; width: 100%; padding: 14px; font-size: 16px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
-        .btn-save:disabled { background: #cbd5e1; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
-    <!-- HEADER -->
     <div class="header">
         <div class="header-top">
             <div class="header-info">
@@ -116,61 +88,67 @@
         <div class="tabs" id="tab-container"></div>
     </div>
 
-    <!-- KONTEN: JADWAL -->
+    <!-- JADWAL -->
     <div id="page-jadwal" class="content active">
         <button class="btn btn-add" onclick="bukaModalJadwal()">➕ Tambah Jadwal Menu</button>
         <div id="daftar-jadwal"><div class="loading">Memuat jadwal...</div></div>
     </div>
 
-    <!-- KONTEN: BUKU RESEP -->
+    <!-- BUKU RESEP -->
     <div id="page-resep" class="content">
-        <h3>Buku Resep & SOP</h3>
+        <button class="btn btn-add" onclick="bukaModalResep()">➕ Tambah Resep Baru</button>
         <div id="daftar-resep"><div class="loading">Memuat resep...</div></div>
     </div>
 
-    <!-- KONTEN: KARYAWAN -->
+    <!-- KARYAWAN -->
     <div id="page-karyawan" class="content">
-        <h3>Data Karyawan</h3>
+        <button class="btn btn-add" onclick="tambahKaryawan()">➕ Tambah Karyawan</button>
         <div id="daftar-karyawan"><div class="loading">Memuat karyawan...</div></div>
     </div>
 
-    <!-- BOTTOM NAVIGATION -->
+    <!-- BOTTOM NAV -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="gantiHalaman('jadwal', this)"><span>📅</span> Jadwal</div>
         <div class="nav-item" onclick="gantiHalaman('resep', this)"><span>📖</span> Buku Resep</div>
         <div class="nav-item" onclick="gantiHalaman('karyawan', this)"><span>👥</span> Karyawan</div>
     </div>
 
-    <!-- ==========================================
-         MODAL TAMBAH JADWAL
-         ========================================== -->
+    <!-- MODAL TAMBAH JADWAL -->
     <div class="modal-overlay" id="modal-jadwal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>Pilih Menu & PIC</h3>
-                <button class="btn-close" onclick="tutupModal()">×</button>
-            </div>
+            <div class="modal-header"><h3>Pilih Menu & PIC</h3><button class="btn-close" onclick="tutupModal('modal-jadwal')">×</button></div>
             <div class="modal-body">
-                <!-- Pilih Kategori -->
                 <label class="form-label">1. Pilih Kategori</label>
                 <div class="category-chips" id="kategori-chips"></div>
-
-                <!-- Pencarian & List Menu -->
                 <label class="form-label">2. Pilih Menu</label>
-                <input type="text" id="input-search" class="search-box" placeholder="🔍 Ketik nama menu (cth: Ayam)..." oninput="renderMenuList()">
+                <input type="text" id="input-search" class="form-control" placeholder="🔍 Ketik nama menu..." oninput="renderMenuList()">
                 <div class="menu-list" id="daftar-menu-modal"></div>
-
                 <hr style="border: 0; border-top: 1px dashed #cbd5e1; margin: 20px 0;">
+                <label class="form-label">3. Pilih PIC</label>
+                <select id="select-pic" class="form-control" onchange="cekTombolSimpan()"><option value="">-- Pilih Karyawan --</option></select>
+            </div>
+            <div class="modal-footer"><button class="btn-save" id="btn-simpan-jadwal" onclick="simpanJadwal()" disabled>Simpan Jadwal</button></div>
+        </div>
+    </div>
 
-                <!-- Pilih PIC -->
-                <label class="form-label">3. Pilih PIC (Penanggung Jawab)</label>
-                <select id="select-pic" class="pic-select" onchange="cekTombolSimpan()">
-                    <option value="">-- Pilih Karyawan --</option>
-                </select>
+    <!-- MODAL TAMBAH RESEP -->
+    <div class="modal-overlay" id="modal-resep">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Tambah Resep Baru</h3><button class="btn-close" onclick="tutupModal('modal-resep')">×</button></div>
+            <div class="modal-body">
+                <label class="form-label">Nama Menu</label>
+                <input type="text" id="resep-title" class="form-control" placeholder="Cth: Ayam Bakar">
+                
+                <label class="form-label">Kategori</label>
+                <input type="text" id="resep-category" class="form-control" placeholder="Cth: Lauk Hewani" list="kategori-list">
+                <datalist id="kategori-list">
+                    <option value="Karbohidrat"><option value="Lauk Hewani"><option value="Lauk Nabati"><option value="Sayur"><option value="Buah"><option value="Minuman">
+                </datalist>
+
+                <label class="form-label">Langkah SOP (Satu baris = satu langkah)</label>
+                <textarea id="resep-steps" class="form-control" rows="6" placeholder="Cth:&#10;Cuci beras&#10;Masak di rice cooker"></textarea>
             </div>
-            <div class="modal-footer">
-                <button class="btn-save" id="btn-simpan-jadwal" onclick="simpanJadwal()" disabled>Simpan Jadwal</button>
-            </div>
+            <div class="modal-footer"><button class="btn-save" onclick="simpanResep()">Simpan Resep</button></div>
         </div>
     </div>
 
@@ -181,40 +159,25 @@
 
         let selectedDate = '';
         let selectedDayName = '';
-        
         let masterMenus = [];
         let masterEmployees = [];
-
-        // State untuk Modal
         let activeCategory = 'Semua';
         let selectedMenuId = null;
 
-        // ==========================================
-        // NAVIGASI & RENDER DASAR
-        // ==========================================
         function gantiHalaman(pageId, element) {
             document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById(`page-${pageId}`).classList.add('active');
             element.classList.add('active');
+            document.getElementById('brand-dapur').innerText = dapurSlug.toUpperCase();
         }
 
-        function getMonday(d) {
-            d = new Date(d);
-            var day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1);
-            return new Date(d.setDate(diff));
-        }
-
-        function formatDate(date) {
-            const offset = date.getTimezoneOffset();
-            const d = new Date(date.getTime() - (offset*60*1000));
-            return d.toISOString().split('T')[0];
-        }
-
+        function getMonday(d) { d = new Date(d); var day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1); return new Date(d.setDate(diff)); }
+        function formatDate(date) { const offset = date.getTimezoneOffset(); const d = new Date(date.getTime() - (offset*60*1000)); return d.toISOString().split('T')[0]; }
+        
         function updateHeader() {
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const dateObj = new Date(selectedDate);
-            dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset()); 
+            const dateObj = new Date(selectedDate); dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset()); 
             document.getElementById('tgl-header').innerText = dateObj.toLocaleDateString('id-ID', options);
         }
 
@@ -222,191 +185,95 @@
             const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
             const tabContainer = document.getElementById('tab-container');
             tabContainer.innerHTML = '';
-            
-            let today = new Date();
-            let dayOfWeek = today.getDay(); 
-            let sunday = new Date(today);
-            sunday.setDate(today.getDate() - dayOfWeek);
+            let today = new Date(); let dayOfWeek = today.getDay(); let sunday = new Date(today); sunday.setDate(today.getDate() - dayOfWeek);
 
             days.forEach((day, index) => {
-                const date = new Date(sunday);
-                date.setDate(sunday.getDate() + index);
-                const dateString = formatDate(date);
-
-                if(!selectedDate && index === dayOfWeek) {
-                    selectedDate = dateString;
-                    selectedDayName = day;
-                }
-
+                const date = new Date(sunday); date.setDate(sunday.getDate() + index); const dateString = formatDate(date);
+                if(!selectedDate && index === dayOfWeek) { selectedDate = dateString; selectedDayName = day; }
                 const tab = document.createElement('div');
                 tab.className = `tab ${day === selectedDayName ? 'active' : ''}`;
                 tab.innerText = day;
-                tab.onclick = () => {
-                    selectedDayName = day;
-                    selectedDate = dateString;
-                    renderTabs();
-                    updateHeader();
-                    muatJadwal();
-                };
+                tab.onclick = () => { selectedDayName = day; selectedDate = dateString; renderTabs(); updateHeader(); muatJadwal(); };
                 tabContainer.appendChild(tab);
             });
         }
 
-        // ==========================================
-        // LOAD DATA MASTER
-        // ==========================================
         async function loadMasterData() {
             try {
                 const res = await fetch(`${API_URL}?dapur=${dapurSlug}&action=get_master`);
                 const data = await res.json();
-                masterMenus = data.menus;
-                masterEmployees = data.employees;
+                masterMenus = data.menus; masterEmployees = data.employees;
 
-                // Render List Resep
+                // Render Resep
                 const resepContainer = document.getElementById('daftar-resep');
                 resepContainer.innerHTML = '';
-                if(masterMenus.length === 0) resepContainer.innerHTML = '<p>Belum ada resep.</p>';
+                if(masterMenus.length === 0) resepContainer.innerHTML = '<p style="text-align:center;">Belum ada resep.</p>';
                 masterMenus.forEach(menu => {
                     let steps = JSON.parse(menu.steps || '[]').map(s => `<li>${s.instruction}</li>`).join('');
-                    resepContainer.innerHTML += `
-                        <div class="list-item">
-                            <h4>${menu.title} <small style="color:#b45309">(${menu.category})</small></h4>
-                            <ul style="font-size:13px; color:#64748b; padding-left:20px; margin-top:5px; margin-bottom:0;">${steps}</ul>
-                        </div>
-                    `;
+                    resepContainer.innerHTML += `<div class="list-item"><h4>${menu.title} <small style="color:#b45309">(${menu.category})</small></h4><ul style="font-size:13px; color:#64748b; padding-left:20px; margin:5px 0 0 0;">${steps}</ul></div>`;
                 });
 
-                // Render List Karyawan
+                // Render Karyawan
                 const karyawanContainer = document.getElementById('daftar-karyawan');
                 karyawanContainer.innerHTML = '';
-                if(masterEmployees.length === 0) karyawanContainer.innerHTML = '<p>Belum ada karyawan.</p>';
-                masterEmployees.forEach(emp => {
-                    karyawanContainer.innerHTML += `<div class="list-item"><h4>👤 ${emp.name}</h4></div>`;
-                });
+                if(masterEmployees.length === 0) karyawanContainer.innerHTML = '<p style="text-align:center;">Belum ada karyawan.</p>';
+                masterEmployees.forEach(emp => { karyawanContainer.innerHTML += `<div class="list-item"><h4>👤 ${emp.name}</h4></div>`; });
 
-                // Isi Dropdown PIC di Modal
+                // Isi Dropdown PIC di Modal Jadwal
                 const selectPic = document.getElementById('select-pic');
                 selectPic.innerHTML = '<option value="">-- Pilih Karyawan --</option>';
-                masterEmployees.forEach(emp => {
-                    selectPic.innerHTML += `<option value="${emp.id}">${emp.name}</option>`;
-                });
+                masterEmployees.forEach(emp => { selectPic.innerHTML += `<option value="${emp.id}">${emp.name}</option>`; });
 
-            } catch (err) {
-                console.error("Gagal load master data", err);
-            }
+            } catch (err) { console.error("Gagal load master data", err); }
         }
 
-        // ==========================================
-        // FUNGSI JADWAL HARIAN
-        // ==========================================
         async function muatJadwal() {
             const container = document.getElementById('daftar-jadwal');
             container.innerHTML = '<div class="loading">Memuat jadwal...</div>';
             try {
                 const res = await fetch(`${API_URL}?dapur=${dapurSlug}&date=${selectedDate}`);
                 const data = await res.json();
-                
                 container.innerHTML = '';
-                if (data.length === 0) {
-                    container.innerHTML = `
-                        <div style="text-align:center; padding: 30px 10px; color:#64748b;">
-                            <h3 style="color:#334155; margin-bottom:10px;">Belum ada menu</h3>
-                            <p>Jadwal untuk ${selectedDayName} belum diisi.</p>
-                        </div>`;
-                    return;
-                }
+                if (data.length === 0) { container.innerHTML = `<div style="text-align:center; padding: 30px 10px; color:#64748b;"><h3 style="color:#334155; margin-bottom:10px;">Belum ada menu</h3><p>Jadwal untuk ${selectedDayName} belum diisi.</p></div>`; return; }
 
                 data.forEach(sch => {
-                    let stepsHtml = '';
-                    let stepsArray = JSON.parse(sch.steps || '[]');
-                    stepsArray.sort((a, b) => a.step_order - b.step_order);
-
-                    stepsArray.forEach(step => {
-                        const isChecked = step.is_completed === 1;
-                        stepsHtml += `
-                            <label class="step ${isChecked ? 'done' : ''}">
-                                <input type="checkbox" ${isChecked ? 'checked' : ''} 
-                                    onchange="toggleStep('${step.id}', ${isChecked})">
-                                <span>${step.instruction}</span>
-                            </label>
-                        `;
-                    });
-
-                    container.innerHTML += `
-                        <div class="card">
-                            <div class="category">${sch.category}</div>
-                            <div class="title">
-                                ${sch.menu_title}
-                                <button class="btn btn-delete" onclick="hapusJadwal('${sch.schedule_id}')">🗑️</button>
-                            </div>
-                            <div class="pic">👤 PIC: ${sch.employee_name}</div>
-                            <div>${stepsHtml}</div>
-                        </div>
-                    `;
+                    let stepsHtml = ''; let stepsArray = JSON.parse(sch.steps || '[]'); stepsArray.sort((a, b) => a.step_order - b.step_order);
+                    stepsArray.forEach(step => { const isChecked = step.is_completed === 1; stepsHtml += `<label class="step ${isChecked ? 'done' : ''}"><input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleStep('${step.id}', ${isChecked})"><span>${step.instruction}</span></label>`; });
+                    container.innerHTML += `<div class="card"><div class="category">${sch.category}</div><div class="title">${sch.menu_title}<button class="btn btn-delete" onclick="hapusJadwal('${sch.schedule_id}')">🗑️</button></div><div class="pic">👤 PIC: ${sch.employee_name}</div><div>${stepsHtml}</div></div>`;
                 });
-            } catch (err) {
-                container.innerHTML = `<p style="color:red;">Gagal memuat jadwal: ${err.message}</p>`;
-            }
+            } catch (err) { container.innerHTML = `<p style="color:red;">Gagal memuat jadwal: ${err.message}</p>`; }
         }
 
         async function toggleStep(stepId, currentStatus) {
-            await fetch(`${API_URL}?action=toggle_step`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ step_id: stepId, is_completed: !currentStatus })
-            });
+            await fetch(`${API_URL}?action=toggle_step`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ step_id: stepId, is_completed: !currentStatus }) });
             muatJadwal();
         }
 
         async function hapusJadwal(scheduleId) {
             if (!confirm("Yakin ingin menghapus jadwal ini?")) return;
-            await fetch(`${API_URL}?action=delete_schedule&id=${scheduleId}`, { method: 'DELETE' });
-            muatJadwal();
+            await fetch(`${API_URL}?action=delete_schedule&id=${scheduleId}`, { method: 'DELETE' }); muatJadwal();
         }
 
         // ==========================================
-        // LOGIKA MODAL TAMBAH JADWAL (BARU)
+        // MODAL JADWAL (Sama seperti sebelumnya)
         // ==========================================
         function bukaModalJadwal() {
-            if (masterMenus.length === 0 || masterEmployees.length === 0) {
-                alert("Buku resep atau data karyawan masih kosong.");
-                return;
-            }
-            
-            // Reset state
-            activeCategory = 'Semua';
-            selectedMenuId = null;
-            document.getElementById('input-search').value = '';
-            document.getElementById('select-pic').value = '';
+            if (masterMenus.length === 0 || masterEmployees.length === 0) return alert("Buku resep atau data karyawan masih kosong. Silakan isi terlebih dahulu.");
+            activeCategory = 'Semua'; selectedMenuId = null;
+            document.getElementById('input-search').value = ''; document.getElementById('select-pic').value = '';
             document.getElementById('btn-simpan-jadwal').disabled = true;
-            
-            renderKategoriChips();
-            renderMenuList();
-            
+            renderKategoriChips(); renderMenuList();
             document.getElementById('modal-jadwal').style.display = 'flex';
         }
 
-        function tutupModal() {
-            document.getElementById('modal-jadwal').style.display = 'none';
-        }
+        function tutupModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
 
         function renderKategoriChips() {
-            const container = document.getElementById('kategori-chips');
-            container.innerHTML = '';
-            
-            // Ambil semua kategori unik
+            const container = document.getElementById('kategori-chips'); container.innerHTML = '';
             const categories = ['Semua', ...new Set(masterMenus.map(m => m.category))];
-            
             categories.forEach(cat => {
-                const chip = document.createElement('div');
-                chip.className = `chip ${cat === activeCategory ? 'active' : ''}`;
-                chip.innerText = cat;
-                chip.onclick = () => {
-                    activeCategory = cat;
-                    renderKategoriChips();
-                    renderMenuList();
-                };
-                container.appendChild(chip);
+                const chip = document.createElement('div'); chip.className = `chip ${cat === activeCategory ? 'active' : ''}`; chip.innerText = cat;
+                chip.onclick = () => { activeCategory = cat; renderKategoriChips(); renderMenuList(); }; container.appendChild(chip);
             });
         }
 
@@ -414,83 +281,74 @@
             const container = document.getElementById('daftar-menu-modal');
             const searchQuery = document.getElementById('input-search').value.toLowerCase();
             container.innerHTML = '';
-
-            // Filter berdasarkan kategori & search
-            const filteredMenus = masterMenus.filter(m => {
-                const matchCategory = activeCategory === 'Semua' || m.category === activeCategory;
-                const matchSearch = m.title.toLowerCase().includes(searchQuery);
-                return matchCategory && matchSearch;
-            });
-
-            if(filteredMenus.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#64748b; font-size:14px;">Menu tidak ditemukan.</p>';
-                return;
-            }
-
+            const filteredMenus = masterMenus.filter(m => (activeCategory === 'Semua' || m.category === activeCategory) && m.title.toLowerCase().includes(searchQuery));
+            if(filteredMenus.length === 0) { container.innerHTML = '<p style="text-align:center; color:#64748b; font-size:14px;">Menu tidak ditemukan.</p>'; return; }
+            
             filteredMenus.forEach(menu => {
-                const div = document.createElement('div');
-                div.className = `menu-item ${selectedMenuId === menu.id ? 'selected' : ''}`;
-                div.innerHTML = `
-                    <div class="menu-item-info">
-                        <h4>${menu.title}</h4>
-                        <p>${menu.category}</p>
-                    </div>
-                    ${selectedMenuId === menu.id ? '<span style="color:var(--accent); font-weight:bold;">✓</span>' : ''}
-                `;
-                div.onclick = () => {
-                    selectedMenuId = menu.id;
-                    renderMenuList(); // Re-render to show selection
-                    cekTombolSimpan();
-                };
+                const div = document.createElement('div'); div.className = `menu-item ${selectedMenuId === menu.id ? 'selected' : ''}`;
+                div.innerHTML = `<div class="menu-item-info"><h4>${menu.title}</h4><p>${menu.category}</p></div>${selectedMenuId === menu.id ? '<span style="color:var(--accent); font-weight:bold;">✓</span>' : ''}`;
+                div.onclick = () => { selectedMenuId = menu.id; renderMenuList(); cekTombolSimpan(); };
                 container.appendChild(div);
             });
         }
 
-        function cekTombolSimpan() {
-            const picId = document.getElementById('select-pic').value;
-            const btn = document.getElementById('btn-simpan-jadwal');
-            if (selectedMenuId && picId) {
-                btn.disabled = false;
-            } else {
-                btn.disabled = true;
-            }
-        }
+        function cekTombolSimpan() { document.getElementById('btn-simpan-jadwal').disabled = !(selectedMenuId && document.getElementById('select-pic').value); }
 
         async function simpanJadwal() {
-            const picId = document.getElementById('select-pic').value;
-            const btn = document.getElementById('btn-simpan-jadwal');
-            
-            btn.innerText = "Menyimpan...";
-            btn.disabled = true;
-
-            try {
-                await fetch(`${API_URL}?dapur=${dapurSlug}&action=create_schedule`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        menu_id: selectedMenuId, 
-                        employee_id: picId,
-                        menu_date: selectedDate
-                    })
-                });
-                tutupModal();
-                muatJadwal();
-            } catch (err) {
-                alert("Gagal menyimpan jadwal.");
-                btn.innerText = "Simpan Jadwal";
-                btn.disabled = false;
-            }
+            const btn = document.getElementById('btn-simpan-jadwal'); btn.innerText = "Menyimpan..."; btn.disabled = true;
+            await fetch(`${API_URL}?dapur=${dapurSlug}&action=create_schedule`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ menu_id: selectedMenuId, employee_id: document.getElementById('select-pic').value, menu_date: selectedDate })
+            });
+            tutupModal('modal-jadwal'); muatJadwal();
         }
 
-        function refreshData() {
-            loadMasterData();
-            muatJadwal();
+        // ==========================================
+        // MODAL TAMBAH RESEP & KARYAWAN (FITUR BARU)
+        // ==========================================
+        function bukaModalResep() {
+            document.getElementById('resep-title').value = '';
+            document.getElementById('resep-category').value = '';
+            document.getElementById('resep-steps').value = '';
+            document.getElementById('modal-resep').style.display = 'flex';
         }
+
+        async function simpanResep() {
+            const title = document.getElementById('resep-title').value;
+            const category = document.getElementById('resep-category').value;
+            const stepsText = document.getElementById('resep-steps').value;
+
+            if (!title || !category || !stepsText) return alert("Semua kolom wajib diisi!");
+
+            // Pisahkan teks berdasarkan enter, lalu hapus baris yang kosong
+            const stepsArray = stepsText.split('\n').map(s => s.trim()).filter(s => s !== '');
+
+            const btn = event.target; btn.innerText = "Menyimpan..."; btn.disabled = true;
+
+            await fetch(`${API_URL}?dapur=${dapurSlug}&action=create_menu`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: title, category: category, steps: stepsArray })
+            });
+
+            btn.innerText = "Simpan Resep"; btn.disabled = false;
+            tutupModal('modal-resep'); loadMasterData(); alert("Resep berhasil ditambahkan!");
+        }
+
+        async function tambahKaryawan() {
+            const name = prompt("Masukkan Nama Karyawan Baru:");
+            if (!name) return;
+
+            await fetch(`${API_URL}?dapur=${dapurSlug}&action=create_employee`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name })
+            });
+            loadMasterData(); alert("Karyawan berhasil ditambahkan!");
+        }
+
+        function refreshData() { loadMasterData(); muatJadwal(); }
 
         // Jalankan saat aplikasi dibuka
-        renderTabs();
-        updateHeader();
-        refreshData();
+        renderTabs(); updateHeader(); refreshData();
     </script>
 </body>
 </html>
