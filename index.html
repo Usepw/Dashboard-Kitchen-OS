@@ -353,7 +353,6 @@
                 const res = await fetch(`${API_URL}?dapur=${dapurSlug}&date=${selectedDate}`);
                 const data = await res.json();
                 
-                // CEK JIKA API MENGEMBALIKAN ERROR / BUKAN ARRAY
                 if (!Array.isArray(data)) {
                     container.innerHTML = `<p style="color:red; text-align:center;">Gagal memuat jadwal. Pastikan PIN benar.</p>`;
                     return;
@@ -386,13 +385,14 @@
         }
 
         async function toggleStep(stepId, currentStatus) {
-            await fetch(`${API_URL}?action=toggle_step`, { method: 'POST', headers: getHeaders(), body: JSON.stringify({ step_id: stepId, is_completed: !currentStatus }) });
+            await fetch(`${API_URL}?dapur=${dapurSlug}&action=toggle_step`, { method: 'POST', headers: getHeaders(), body: JSON.stringify({ step_id: stepId, is_completed: !currentStatus }) });
             muatJadwal();
         }
 
         async function hapusJadwal(scheduleId) {
             if (!confirm("Yakin ingin menghapus jadwal ini?")) return;
-            const res = await fetch(`${API_URL}?action=delete_schedule&id=${scheduleId}`, { method: 'DELETE', headers: getHeaders() });
+            // PERBAIKAN: Tambahkan dapur=${dapurSlug} pada URL
+            const res = await fetch(`${API_URL}?dapur=${dapurSlug}&action=delete_schedule&id=${scheduleId}`, { method: 'DELETE', headers: getHeaders() });
             if (!res.ok) { 
                 alert("Gagal menghapus. Pastikan Anda login sebagai Admin (PIN benar)."); 
             } else {
