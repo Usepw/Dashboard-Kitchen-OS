@@ -31,6 +31,10 @@
         
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 50; display: none; align-items: center; justify-content: center; padding: 15px;}
         .modal-content { background: white; width: 100%; max-width: 450px; border-radius: 12px; padding: 20px; max-height: 90vh; overflow-y: auto;}
+        
+        .link-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; text-decoration: none; margin-right: 5px; margin-top: 5px;}
+        .link-badge.video { background: #fee2e2; color: #991b1b; }
+        .link-badge.sop { background: #e0f2fe; color: #0369a1; }
     </style>
 </head>
 <body>
@@ -105,6 +109,7 @@
     async function muatPelanggan() {
         try {
             const res = await fetch(`${API_URL}?action=get_tenants`);
+            if (!res.ok) throw new Error("Gagal mengambil data.");
             const data = await res.json();
             const tbody = document.querySelector('#tabel-pelanggan tbody');
             tbody.innerHTML = '';
@@ -129,7 +134,7 @@
                     </tr>
                 `;
             });
-        } catch (err) { console.error(err); }
+        } catch (err) { alert("Error memuat pelanggan: " + err.message); }
     }
 
     async function tambahPelanggan(isTrial) {
@@ -150,13 +155,22 @@
         
         const expired = expiredDate.toISOString().split('T')[0];
 
-        await fetch(`${API_URL}?action=create_tenant`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ kitchen_name: kitchen, owner_name: owner, wa_number: wa, expires_at: expired, admin_pin: pin })
-        });
-        
-        document.getElementById('inp-kitchen').value = ''; document.getElementById('inp-owner').value = ''; document.getElementById('inp-wa').value = ''; document.getElementById('inp-pin').value = '';
-        muatPelanggan(); alert("Pelanggan ditambahkan!");
+        try {
+            const res = await fetch(`${API_URL}?action=create_tenant`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ kitchen_name: kitchen, owner_name: owner, wa_number: wa, expires_at: expired, admin_pin: pin })
+            });
+            
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || "Gagal menyimpan ke database");
+            }
+
+            document.getElementById('inp-kitchen').value = ''; document.getElementById('inp-owner').value = ''; document.getElementById('inp-wa').value = ''; document.getElementById('inp-pin').value = '';
+            muatPelanggan(); alert("Pelanggan berhasil ditambahkan!");
+        } catch (err) {
+            alert("Gagal menambah pelanggan: " + err.message);
+        }
     }
 
     function copyLink(text) { navigator.clipboard.writeText(text).then(() => alert("Link di-copy!\n\n" + text)); }
@@ -173,7 +187,12 @@
         resepContainer.innerHTML = data.menus.length === 0 ? '<p style="font-size:13px;">Belum ada resep.</p>' : '';
         data.menus.forEach(menu => {
             let steps = JSON.parse(menu.steps || '[]').map(s => `<li>${s.instruction}</li>`).join('');
-            resepContainer.innerHTML += `<div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:6px; margin-bottom:10px;"><strong>${menu.title}</strong><ul style="font-size:12px; padding-left:20px;">${steps}</ul></div>`;
+            
+            let linksHtml = '';
+            if (menu.video_url) linksHtml += `<a href="${menu.video_url}" target="_blank" class="link-badge video">🎥 Video</a>`;
+            if (menu.sop_url) linksHtml += `<a href="${menu.sop_url}" target="_blank" class="link-badge sop">📄 SOP</a>`;
+            
+            resepContainer.innerHTML += `<div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:6px; margin-bottom:10px;"><strong>${menu.title}</strong><div>${linksHtml}</div><ul style="font-size:12px; padding-left:20px; margin-top:5px;">${steps}</ul></div>`;
         });
 
         const karyawanContainer = document.getElementById('detail-karyawan');
@@ -201,18 +220,26 @@
 
     async function simpanEdit() {
         const slug = document.getElementById('edit-slug').value;
-        await fetch(`${API_URL}?action=update_tenant`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                slug: slug, 
-                kitchen_name: document.getElementById('edit-kitchen').value, 
-                owner_name: document.getElementById('edit-owner').value, 
-                wa_number: document.getElementById('edit-wa').value, 
-                expires_at: document.getElementById('edit-expired').value,
-                admin_pin: document.getElementById('edit-pin').value
-            })
-        });
-        tutupModal(); muatPelanggan(); alert("Data pelanggan diperbarui!");
+        try {
+            const res = await fetch(`${API_URL}?action=update_tenant`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    slug: slug, 
+                    kitchen_name: document.getElementById('edit-kitchen').value, 
+                    owner_name: document.getElementById('edit-owner').value, 
+                    wa_number: document.getElementById('edit-wa').value, 
+                    expires_at: document.getElementById('edit-expired').value,
+                    admin_pin: document.getElementById('edit-pin').value
+                })
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || "Gagal update database");
+            }
+            tutupModal(); muatPelanggan(); alert("Data pelanggan diperbarui!");
+        } catch (err) {
+            alert("Gagal menyimpan: " + err.message);
+        }
     }
 
     async function konversiKeMember() {
@@ -226,28 +253,40 @@
         expiredDate.setFullYear(expiredDate.getFullYear() + 1);
         const expired = expiredDate.toISOString().split('T')[0];
 
-        await fetch(`${API_URL}?action=update_tenant`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                slug: slug, 
-                kitchen_name: kitchen, 
-                owner_name: document.getElementById('edit-owner').value, 
-                wa_number: document.getElementById('edit-wa').value, 
-                expires_at: expired,
-                admin_pin: document.getElementById('edit-pin').value
-            })
-        });
-        tutupModal(); muatPelanggan(); alert("Berhasil dikonversi menjadi Member (1 Tahun)!");
+        try {
+            const res = await fetch(`${API_URL}?action=update_tenant`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    slug: slug, 
+                    kitchen_name: kitchen, 
+                    owner_name: document.getElementById('edit-owner').value, 
+                    wa_number: document.getElementById('edit-wa').value, 
+                    expires_at: expired,
+                    admin_pin: document.getElementById('edit-pin').value
+                })
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || "Gagal update database");
+            }
+            tutupModal(); muatPelanggan(); alert("Berhasil dikonversi menjadi Member (1 Tahun)!");
+        } catch (err) {
+            alert("Gagal konversi: " + err.message);
+        }
     }
 
     async function resetData() {
-        if(!confirm("PERINGATAN: Hapus SEMUA resep, karyawan, dan jadwal pelanggan ini? (Link bisa dipakai untuk trial klien baru)")) return;
+        if(!confirm("PERINGATAN: Hapus SEMUA resep, karyawan, dan jadwal pelanggan ini?")) return;
         const slug = document.getElementById('edit-slug').value;
-        await fetch(`${API_URL}?action=reset_tenant_data`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: slug })
-        });
-        tutupModal(); alert("Data berhasil dikosongkan!"); 
-        document.getElementById('area-detail').style.display = 'none';
+        try {
+            await fetch(`${API_URL}?action=reset_tenant_data`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: slug })
+            });
+            tutupModal(); alert("Data berhasil dikosongkan!"); 
+            document.getElementById('area-detail').style.display = 'none';
+        } catch (err) {
+            alert("Gagal reset data: " + err.message);
+        }
     }
 
     muatPelanggan();
