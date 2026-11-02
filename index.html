@@ -278,7 +278,9 @@
                     document.getElementById('brand-dapur').innerText = dapurSlug.toUpperCase();
                 }
 
-                masterMenus = data.menus; masterEmployees = data.employees;
+                masterMenus = data.menus || []; 
+                masterEmployees = data.employees || [];
+                
                 renderResepChips(); renderResepList();
 
                 const karyawanContainer = document.getElementById('daftar-karyawan');
@@ -324,7 +326,6 @@
                 let steps = JSON.parse(menu.steps || '[]').map(s => `<li>${s.instruction}</li>`).join('');
                 let btnEdit = (userRole === 'admin') ? `<button class="btn btn-edit" onclick="editResep('${menu.id}')">✏️ Edit</button>` : '';
                 
-                // Tampilkan link jika ada
                 let linksHtml = '';
                 if (menu.video_url) linksHtml += `<a href="${menu.video_url}" target="_blank" class="badge-link video">🎥 Video</a>`;
                 if (menu.sop_url) linksHtml += `<a href="${menu.sop_url}" target="_blank" class="badge-link sop">📄 SOP</a>`;
@@ -351,6 +352,13 @@
             try {
                 const res = await fetch(`${API_URL}?dapur=${dapurSlug}&date=${selectedDate}`);
                 const data = await res.json();
+                
+                // CEK JIKA API MENGEMBALIKAN ERROR / BUKAN ARRAY
+                if (!Array.isArray(data)) {
+                    container.innerHTML = `<p style="color:red; text-align:center;">Gagal memuat jadwal. Pastikan PIN benar.</p>`;
+                    return;
+                }
+
                 container.innerHTML = '';
                 if (data.length === 0) { container.innerHTML = `<div style="text-align:center; padding: 30px 10px; color:#64748b;"><h3 style="color:#334155; margin-bottom:10px;">Belum ada menu</h3><p>Jadwal untuk ${selectedDayName} belum diisi.</p></div>`; return; }
 
@@ -359,7 +367,6 @@
                     stepsArray.forEach(step => { const isChecked = step.is_completed === 1; stepsHtml += `<label class="step ${isChecked ? 'done' : ''}"><input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleStep('${step.id}', ${isChecked})"><span>${step.instruction}</span></label>`; });
                     let btnHapus = (userRole === 'admin') ? `<button class="btn btn-delete" onclick="hapusJadwal('${sch.schedule_id}')">🗑️</button>` : '';
                     
-                    // Tampilkan link jika ada
                     let linksHtml = '';
                     if (sch.video_url) linksHtml += `<a href="${sch.video_url}" target="_blank" class="badge-link video">🎥 Video</a>`;
                     if (sch.sop_url) linksHtml += `<a href="${sch.sop_url}" target="_blank" class="badge-link sop">📄 SOP</a>`;
@@ -386,8 +393,11 @@
         async function hapusJadwal(scheduleId) {
             if (!confirm("Yakin ingin menghapus jadwal ini?")) return;
             const res = await fetch(`${API_URL}?action=delete_schedule&id=${scheduleId}`, { method: 'DELETE', headers: getHeaders() });
-            if (!res.ok) alert("Gagal menghapus. Pastikan Anda Admin.");
-            muatJadwal();
+            if (!res.ok) { 
+                alert("Gagal menghapus. Pastikan Anda login sebagai Admin (PIN benar)."); 
+            } else {
+                muatJadwal();
+            }
         }
 
         function bukaModalJadwal() {
