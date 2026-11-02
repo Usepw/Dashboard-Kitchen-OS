@@ -34,7 +34,12 @@
 
         .card { background: white; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 4px solid var(--accent); }
         .category { font-weight: bold; color: #b45309; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; }
-        .title { font-size: 18px; font-weight: bold; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .title { font-size: 18px; font-weight: bold; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;}
+        .link-badges { display: flex; gap: 5px; margin-bottom: 10px; }
+        .badge-link { display: inline-flex; align-items: center; gap: 4px; background: #f1f5f9; color: #334155; padding: 4px 8px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1;}
+        .badge-link.video { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+        .badge-link.sop { background: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
+        
         .pic { font-size: 13px; color: #64748b; margin-bottom: 10px; background: #f1f5f9; display: inline-block; padding: 3px 8px; border-radius: 4px; }
         .step { display: flex; align-items: flex-start; padding: 8px 0; border-top: 1px dashed #e2e8f0; font-size: 14px; }
         .step input[type="checkbox"] { margin-right: 12px; margin-top: 3px; transform: scale(1.3); }
@@ -151,7 +156,14 @@
                 <label class="form-label">Nama Menu</label><input type="text" id="resep-title" class="form-control" placeholder="Cth: Ayam Bakar">
                 <label class="form-label">Kategori</label><input type="text" id="resep-category" class="form-control" placeholder="Cth: Lauk Hewani" list="kategori-list">
                 <datalist id="kategori-list"><option value="Karbohidrat"><option value="Lauk Hewani"><option value="Lauk Nabati"><option value="Sayur"><option value="Buah"><option value="Saus"><option value="Bumbu"></datalist>
-                <label class="form-label">Langkah SOP (Satu baris = satu langkah)</label><textarea id="resep-steps" class="form-control" rows="6" placeholder="Cth:&#10;Cuci beras&#10;Masak di rice cooker"></textarea>
+                
+                <label class="form-label">Link Video Tutorial (Opsional)</label>
+                <input type="url" id="resep-video" class="form-control" placeholder="Cth: https://youtube.com/...">
+                
+                <label class="form-label">Link Dokumen SOP (Opsional)</label>
+                <input type="url" id="resep-sop" class="form-control" placeholder="Cth: https://drive.google.com/...">
+
+                <label class="form-label">Langkah SOP (Satu baris = satu langkah)</label><textarea id="resep-steps" class="form-control" rows="4" placeholder="Cth:&#10;Cuci beras&#10;Masak di rice cooker"></textarea>
             </div>
             <div class="modal-footer"><button class="btn-save" id="btn-simpan-resep" onclick="simpanResep()">Simpan Resep</button></div>
         </div>
@@ -199,11 +211,6 @@
 
         function applyRoleUI() {
             document.getElementById('login-screen').style.display = 'none';
-            
-            // PERBAIKAN: Ubah tulisan MEMUAT... menjadi Nama Dapur
-            let namaDapurTampil = dapurSlug.replace(/-/g, ' ').toUpperCase();
-            document.getElementById('brand-dapur').innerText = namaDapurTampil;
-
             if (userRole === 'admin') {
                 document.getElementById('btn-tambah-jadwal').style.display = 'flex';
                 document.getElementById('btn-tambah-resep').style.display = 'flex';
@@ -228,7 +235,6 @@
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById(`page-${pageId}`).classList.add('active');
             element.classList.add('active');
-            // (Tidak perlu update brand lagi di sini karena sudah di-handle applyRoleUI)
         }
 
         function getMonday(d) { d = new Date(d); var day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1); return new Date(d.setDate(diff)); }
@@ -266,9 +272,13 @@
                     return;
                 }
 
-                masterMenus = data.menus || []; 
-                masterEmployees = data.employees || [];
-                
+                if (data.kitchen_name) {
+                    document.getElementById('brand-dapur').innerText = data.kitchen_name.toUpperCase();
+                } else {
+                    document.getElementById('brand-dapur').innerText = dapurSlug.toUpperCase();
+                }
+
+                masterMenus = data.menus; masterEmployees = data.employees;
                 renderResepChips(); renderResepList();
 
                 const karyawanContainer = document.getElementById('daftar-karyawan');
@@ -308,17 +318,25 @@
                 return matchCat && matchSearch;
             });
 
-            if(filteredMenus.length === 0) { container.innerHTML = '<p style="text-align:center; color:#64748b;">Resep tidak ditemukan.</p>'; return; }
+            if(filteredMenus.length === 0) { container.innerHTML = '<p style="text-align:center; color:#64748b;">Resep tidak ditemukan / Belum ada resep.</p>'; return; }
 
             filteredMenus.forEach(menu => {
                 let steps = JSON.parse(menu.steps || '[]').map(s => `<li>${s.instruction}</li>`).join('');
                 let btnEdit = (userRole === 'admin') ? `<button class="btn btn-edit" onclick="editResep('${menu.id}')">✏️ Edit</button>` : '';
+                
+                // Tampilkan link jika ada
+                let linksHtml = '';
+                if (menu.video_url) linksHtml += `<a href="${menu.video_url}" target="_blank" class="badge-link video">🎥 Video</a>`;
+                if (menu.sop_url) linksHtml += `<a href="${menu.sop_url}" target="_blank" class="badge-link sop">📄 SOP</a>`;
+                let linksContainer = linksHtml ? `<div class="link-badges" style="margin-top:10px;">${linksHtml}</div>` : '';
+
                 container.innerHTML += `
                     <div class="list-item" style="display:block;">
                         <div class="resep-header">
                             <div class="resep-content">
                                 <h4>${menu.title} <small style="color:#b45309">(${menu.category})</small></h4>
                                 <ul style="font-size:13px; color:#64748b; padding-left:20px; margin:5px 0 0 0;">${steps}</ul>
+                                ${linksContainer}
                             </div>
                             ${btnEdit}
                         </div>
@@ -340,7 +358,22 @@
                     let stepsHtml = ''; let stepsArray = JSON.parse(sch.steps || '[]'); stepsArray.sort((a, b) => a.step_order - b.step_order);
                     stepsArray.forEach(step => { const isChecked = step.is_completed === 1; stepsHtml += `<label class="step ${isChecked ? 'done' : ''}"><input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleStep('${step.id}', ${isChecked})"><span>${step.instruction}</span></label>`; });
                     let btnHapus = (userRole === 'admin') ? `<button class="btn btn-delete" onclick="hapusJadwal('${sch.schedule_id}')">🗑️</button>` : '';
-                    container.innerHTML += `<div class="card"><div class="category">${sch.category}</div><div class="title">${sch.menu_title}${btnHapus}</div><div class="pic">👤 PIC: ${sch.employee_name}</div><div>${stepsHtml}</div></div>`;
+                    
+                    // Tampilkan link jika ada
+                    let linksHtml = '';
+                    if (sch.video_url) linksHtml += `<a href="${sch.video_url}" target="_blank" class="badge-link video">🎥 Video</a>`;
+                    if (sch.sop_url) linksHtml += `<a href="${sch.sop_url}" target="_blank" class="badge-link sop">📄 SOP</a>`;
+                    let linksContainer = linksHtml ? `<div class="link-badges" style="margin-top:5px; margin-bottom:5px;">${linksHtml}</div>` : '';
+
+                    container.innerHTML += `
+                        <div class="card">
+                            <div class="category">${sch.category}</div>
+                            <div class="title">${sch.menu_title}${btnHapus}</div>
+                            ${linksContainer}
+                            <div class="pic">👤 PIC: ${sch.employee_name}</div>
+                            <div>${stepsHtml}</div>
+                        </div>
+                    `;
                 });
             } catch (err) { container.innerHTML = `<p style="color:red;">Gagal memuat jadwal: ${err.message}</p>`; }
         }
@@ -358,7 +391,7 @@
         }
 
         function bukaModalJadwal() {
-            if (masterMenus.length === 0 || masterEmployees.length === 0) return alert("Buku resep atau data karyawan masih kosong. Silakan buat resep & karyawan terlebih dahulu.");
+            if (masterMenus.length === 0 || masterEmployees.length === 0) return alert("Buku resep atau data karyawan masih kosong. Silakan isi terlebih dahulu.");
             activeCategory = 'Semua'; selectedMenuId = null;
             document.getElementById('input-search').value = ''; document.getElementById('select-pic').value = '';
             document.getElementById('btn-simpan-jadwal').disabled = true;
@@ -404,7 +437,9 @@
         function bukaModalResep() {
             editingMenuId = null;
             document.getElementById('modal-resep-title').innerText = "Tambah Resep Baru";
-            document.getElementById('resep-title').value = ''; document.getElementById('resep-category').value = ''; document.getElementById('resep-steps').value = '';
+            document.getElementById('resep-title').value = ''; document.getElementById('resep-category').value = ''; 
+            document.getElementById('resep-video').value = ''; document.getElementById('resep-sop').value = '';
+            document.getElementById('resep-steps').value = '';
             document.getElementById('modal-resep').style.display = 'flex';
         }
 
@@ -414,19 +449,23 @@
             editingMenuId = menuId;
             document.getElementById('modal-resep-title').innerText = "Edit Resep";
             document.getElementById('resep-title').value = menu.title; document.getElementById('resep-category').value = menu.category;
+            document.getElementById('resep-video').value = menu.video_url || ''; document.getElementById('resep-sop').value = menu.sop_url || '';
             let stepsArray = JSON.parse(menu.steps || '[]'); stepsArray.sort((a,b) => a.step_order - b.step_order);
             document.getElementById('resep-steps').value = stepsArray.map(s => s.instruction).join('\n');
             document.getElementById('modal-resep').style.display = 'flex';
         }
 
         async function simpanResep() {
-            const title = document.getElementById('resep-title').value; const category = document.getElementById('resep-category').value; const stepsText = document.getElementById('resep-steps').value;
-            if (!title || !category || !stepsText) return alert("Semua kolom wajib diisi!");
+            const title = document.getElementById('resep-title').value; const category = document.getElementById('resep-category').value; 
+            const videoUrl = document.getElementById('resep-video').value; const sopUrl = document.getElementById('resep-sop').value;
+            const stepsText = document.getElementById('resep-steps').value;
+            
+            if (!title || !category || !stepsText) return alert("Nama, Kategori, dan SOP wajib diisi!");
             const stepsArray = stepsText.split('\n').map(s => s.trim()).filter(s => s !== '');
             const btn = document.getElementById('btn-simpan-resep'); btn.innerText = "Menyimpan..."; btn.disabled = true;
 
             const actionType = editingMenuId ? 'update_menu' : 'create_menu';
-            const payload = { title: title, category: category, steps: stepsArray };
+            const payload = { title: title, category: category, steps: stepsArray, video_url: videoUrl, sop_url: sopUrl };
             if (editingMenuId) payload.menu_id = editingMenuId;
 
             const res = await fetch(`${API_URL}?dapur=${dapurSlug}&action=${actionType}`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(payload) });
